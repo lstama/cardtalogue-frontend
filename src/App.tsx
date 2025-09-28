@@ -1,0 +1,53 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Layout } from './components/layout/Layout'
+import { KardsPage } from './pages/KardsPage'
+import { PacksPage } from './pages/PacksPage'
+import { GamesPage } from './pages/GamesPage'
+import { CartPage } from './pages/CartPage'
+import { StoragesPage }from './pages/StoragesPage'
+import { ThemeProvider } from './contexts/ThemeContext'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/layout/ProtectedRouteLayout'
+import LoginPage from './pages/LoginPage'
+import { CartProvider } from "./contexts/CartContext"
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <AuthProvider>
+          <ThemeProvider>
+              <Router>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<KardsPage />} />
+                    <Route path="/packs" element={<PacksPage />} />
+                    <Route path="/games" element={<GamesPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/storages" element={
+                      <ProtectedRoute>
+                        <StoragesPage />
+                      </ProtectedRoute>
+                    } />
+                  </Routes>
+                </Layout>
+              </Router>
+          </ThemeProvider>
+        </AuthProvider>
+      </CartProvider>
+    </QueryClientProvider>
+  )
+}
+
+export default App
