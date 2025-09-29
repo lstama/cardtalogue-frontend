@@ -37,13 +37,25 @@ export const KardCard = ({ kard }: KardCardProps) => {
 
             {/* Image */}
             <div className="relative mb-2">
-              <div className="aspect-[230/330] w-full bg-gray-100 rounded-md overflow-hidden">
+              <div className="aspect-[230/330] w-full bg-gray-100 rounded-md overflow-hidden relative">
                 <img
                   src={kard.image_url}
                   alt={kard.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
+                <span
+                  className="absolute inset-0 flex items-center justify-center text-6xl font-bold text-gray-900 opacity-40 transform rotate-45"
+                >
+                  SAMPLE
+                </span>
+                {kard.for_sale != "yes" && (
+                <span
+                  className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-red-900 opacity-80 drop-shadow-[2px_2px_2px_white] "
+                >
+                  NOT FOR SALE
+                </span>
+                )}
               </div>
             </div>
 
@@ -92,7 +104,20 @@ export const KardCard = ({ kard }: KardCardProps) => {
             </div>
 
             {/* Cart Buttons */}
-            <div className="mt-3 flex flex-col gap-2">
+            <div className="mt-3 flex flex-col gap-2 mt-auto">
+              {quantityInCart > 0 && (
+                <button
+                  onClick={() => removeFromCart(kard.id)}
+                  disabled={!(kard.for_sale === "yes")}
+                  className="w-full text-xs px-2 py-1 bg-red-600 text-white rounded 
+                       hover:bg-red-700 disabled:bg-gray-400 
+                       disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Remove from Cart
+                </button>
+              )}
+
+              {kard.for_sale === "yes" && (
               <button
                 onClick={() =>
                   addToCart(
@@ -112,22 +137,11 @@ export const KardCard = ({ kard }: KardCardProps) => {
               >
                 Add to Cart
               </button>
-
-              {quantityInCart > 0 && (
-                <button
-                  onClick={() => removeFromCart(kard.id)}
-                  disabled={!(kard.for_sale === "yes")}
-                  className="w-full text-xs px-2 py-1 bg-red-600 text-white rounded 
-                       hover:bg-red-700 disabled:bg-gray-400 
-                       disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Remove from Cart
-                </button>
               )}
 
               <button
                 onClick={() => setFlipped(false)}
-                className="w-full px-2 py-1 bg-gray-600 text-white rounded text-[10px] leading-tight hover:bg-gray-700"
+                className="w-full px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700"
               >
                 Back
               </button>

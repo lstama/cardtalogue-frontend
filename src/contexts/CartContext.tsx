@@ -23,6 +23,7 @@ interface CartContextType {
   fixQuantity: (id: number, maxQuantity: number) => void
   deleteFromCart: (id: number) => void
   clearCart: () => void
+  getSimplifiedCart: () => string
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -82,6 +83,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  // Remove price, priceMultiplier, and maxQuantity
+  const getSimplifiedCart = () => {
+     return JSON.stringify(cart.map(({price, priceMultiplier, maxQuantity,  ...simplified}) => simplified))
+  }
+
   const removeFromCart = (id: number) => {
     setCart((prev) => {
       const existing = prev.find((c) => c.id === id)
@@ -115,7 +121,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ cart, getQuantity, addToCart, removeFromCart, fixQuantity, deleteFromCart, clearCart }}
+      value={{ cart, getQuantity, addToCart, removeFromCart, fixQuantity, deleteFromCart, clearCart, getSimplifiedCart }}
     >
       {children}
     </CartContext.Provider>

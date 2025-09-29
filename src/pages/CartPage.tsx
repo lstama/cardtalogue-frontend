@@ -3,7 +3,7 @@ import { useCart } from "../contexts/CartContext"
 import { Button } from "../components/ui/Button"
 
 export const CartPage = () => {
-    const { cart, addToCart, removeFromCart, deleteFromCart, clearCart } = useCart()
+    const { cart, addToCart, removeFromCart, deleteFromCart, clearCart, getSimplifiedCart } = useCart()
     const [page, setPage] = useState(1)
     const [showModal, setShowModal] = useState(false)
     const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -120,7 +120,7 @@ export const CartPage = () => {
                         <textarea
                             readOnly
                             className="w-full h-40 border rounded p-2 text-xs"
-                            value={JSON.stringify(cart, null, 2)}
+                            value={getSimplifiedCart()}
                         />
                         <div className="flex justify-end gap-2 mt-2">
                             <Button

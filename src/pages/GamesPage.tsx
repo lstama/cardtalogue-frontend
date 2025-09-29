@@ -1,5 +1,5 @@
 // pages/GamesPage.tsx
-import { SearchLayout } from "../components/layout/SearchLayout"
+import { SearchLayout } from "../components/layout/Search"
 import { GameCard } from "../components/items/GameCard"
 import { useSearchGames } from "../hooks/useGames"
 

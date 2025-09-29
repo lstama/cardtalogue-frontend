@@ -8,7 +8,7 @@ import { CartPage } from './pages/CartPage'
 import { StoragesPage }from './pages/StoragesPage'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider } from './contexts/AuthContext'
-import ProtectedRoute from './components/layout/ProtectedRouteLayout'
+import ProtectedRoute from './components/layout/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
 import { CartProvider } from "./contexts/CartContext"
 

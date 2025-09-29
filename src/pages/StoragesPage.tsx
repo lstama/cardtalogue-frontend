@@ -1,5 +1,5 @@
 // pages/StoragesPage.tsx
-import { SearchLayout } from "../components/layout/SearchLayout"
+import { SearchLayout } from "../components/layout/Search"
 import { StorageCard } from "../components/items/StorageCard"
 import { useSearchStorages } from "../hooks/useStorages"
 

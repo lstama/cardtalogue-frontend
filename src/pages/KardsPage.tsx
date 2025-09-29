@@ -1,6 +1,6 @@
 // pages/KardsPage.tsx
 import { useEffect, useState } from "react"
-import { SearchLayout } from "../components/layout/SearchLayout"
+import { SearchLayout } from "../components/layout/Search"
 import { KardCard } from "../components/items/KardCard"
 import { useSearchKards } from "../hooks/useKards"
 import { gamesAPI, languagesAPI, packsAPI } from "../services/api"

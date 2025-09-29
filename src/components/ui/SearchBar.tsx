@@ -40,9 +40,8 @@ export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBar
                 type="button"
                 onClick={() => setOpenDropdown(openDropdown === idx ? null : idx)}
                 className={`whitespace-nowrap overflow-hidden shrink-0 z-10 inline-flex items-center
-                    py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-50 border-r border-t border-b border-gray-300
-                    hover:bg-gray-200 focus:ring-gray-300 focus:border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600
-                    dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
+                    py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-50 border-r border-t border-b border-gray-300 dark:border-gray-600
+                    hover:bg-gray-200 focus:ring-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white dark:focus:border-gray-600"
                   ${isFirst ? "rounded-s-lg border-l" : ""}`}
               >
                 {filter.options.find((o) => o.id === filter.value)?.name || filter.label}

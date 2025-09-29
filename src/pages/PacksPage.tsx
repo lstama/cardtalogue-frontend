@@ -1,6 +1,6 @@
 // pages/PacksPage.tsx
 import { useEffect, useState } from "react"
-import { SearchLayout } from "../components/layout/SearchLayout"
+import { SearchLayout } from "../components/layout/Search"
 import { PackCard } from "../components/items/PackCard"
 import { useSearchPacks } from "../hooks/usePacks"
 import { gamesAPI, languagesAPI } from "../services/api"
