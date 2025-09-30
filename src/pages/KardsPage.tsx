@@ -26,6 +26,9 @@ export const KardsPage = () => {
     packsAPI.searchPacks(gameId, languageId, "", 100, 0).then((res) =>
       setPacks([{ id: 0, name: "All Packs" }, ...res.data])
     )
+    packsAPI.getPacks(100, 0).then((res) =>
+      setPacks([{ id: 0, name: "All Packs" }, ...res.data])
+    )
   }, [gameId, languageId])
 
   return (
