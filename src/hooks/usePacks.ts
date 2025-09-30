@@ -1,4 +1,4 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query'
 import { packsAPI } from '../services/api'
 
 export const usePacks = (limit: number = 20, offset: number = 0) => {
@@ -22,5 +22,18 @@ export const useSearchPacks = (
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
     enabled: false,
+  })
+}
+
+// ✅ Create a new pack (mutation)
+export const useCreatePack = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: packsAPI.createPack,
+    onSuccess: () => {
+      // Invalidate and refetch packs list after creation
+      queryClient.invalidateQueries({ queryKey: ['packs'] })
+    },
   })
 }

@@ -20,7 +20,11 @@ type SearchBarProps = {
 
 export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBarProps) => {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null)
-  const closeClickOutside = useClickOutside(() => setOpenDropdown(null))
+  const closeClickOutside = useClickOutside<HTMLDivElement>(() => setOpenDropdown(null))
+
+  const toggleDropdown = (idx: number) => {
+  setOpenDropdown(prev => (prev === idx ? null : idx))
+}
 
   return (
     <form
@@ -31,14 +35,17 @@ export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBar
       className="mx-auto"
     >
       <div className="flex">
+
+        <div className="flex" ref={closeClickOutside}>
         {/* Render filters */}
         {filters.map((filter, idx) => {
           const isFirst = idx === 0
           return (
+            
             <div key={filter.label} className="relative">
               <button
                 type="button"
-                onClick={() => setOpenDropdown(openDropdown === idx ? null : idx)}
+                onClick={() => toggleDropdown(idx)}
                 className={`whitespace-nowrap overflow-hidden shrink-0 z-10 inline-flex items-center
                     py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-50 border-r border-t border-b border-gray-300 dark:border-gray-600
                     hover:bg-gray-200 focus:ring-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white dark:focus:border-gray-600"
@@ -63,7 +70,7 @@ export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBar
               </button>
 
               {openDropdown === idx && (
-                <div ref={closeClickOutside}>
+                // <div ref={closeClickOutside}>
                 <div className="absolute z-10 mt-1 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
                   <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
                     {filter.options.map((opt) => (
@@ -82,12 +89,12 @@ export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBar
                     ))}
                   </ul>
                 </div>
-                </div>
+                // </div>
               )}
             </div>
           )
         })}
-
+        </div>
         {/* Search input */}
         <div className="relative w-full">
           <input

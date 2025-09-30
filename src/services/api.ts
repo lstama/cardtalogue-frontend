@@ -154,7 +154,18 @@ export const packsAPI = {
       params: { game_id: game_id, language_id: language_id, query: query, limit, offset }
     })
     return response.data
-  }
+  },
+  createPack: async (data: {
+    code: string
+    name: string
+    image_url: string
+    description: string
+    game_id: number
+    language_id: number
+  }) => {
+    const response = await privateApiClient.post('/packs', data)
+    return response.data
+  },
 }
 
 export const kardsAPI = {
