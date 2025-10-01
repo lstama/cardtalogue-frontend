@@ -13,6 +13,15 @@ export interface Pack {
   updated_at: string
 }
 
+export interface CreatePackRequest {
+  code: string
+  name: string
+  image_url: string
+  description: string
+  game_id: number
+  language_id: number
+}
+
 export interface Kard {
   id: number
   code: string
@@ -37,6 +46,23 @@ export interface Kard {
   language_code: string
   created_at: string
   updated_at: string
+}
+
+export interface CreateKardRequest {
+  code: string
+  name: string
+  price: number
+  price_multiplier: number
+  quantity: number
+  image_url: string
+  description: string
+  status: string
+  for_sale: string
+  game_id: number
+  language_id: number
+  pack_id: number
+  rarity_id: number
+  storage_id: number
 }
 
 export interface ProtectedKard {
@@ -76,6 +102,14 @@ export interface Game {
 }
 
 export interface Language {
+  id: number
+  code: string
+  name: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Rarity {
   id: number
   code: string
   name: string

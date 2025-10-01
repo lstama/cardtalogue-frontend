@@ -1,5 +1,20 @@
 import axios from 'axios'
-import { ApiResponse, Kard, ProtectedKard, Pack, Game, Language, Storage, LoginRequest, LoginResponse, RefreshRequest, RefreshResponse } from '../types'
+import {
+  ApiResponse,
+  Kard,
+  CreateKardRequest,
+  ProtectedKard,
+  Pack,
+  CreatePackRequest,
+  Game,
+  Language,
+  Rarity,
+  Storage,
+  LoginRequest,
+  LoginResponse,
+  RefreshRequest,
+  RefreshResponse
+} from '../types'
 import { API_BASE_URL } from '../config/api'
 
 const privateApiClient = axios.create({
@@ -23,13 +38,13 @@ const authApiClient = axios.create({
 
 export const isTokenExpiringSoon = (token: string | null) => {
   if (!token) return true
-  
+
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
     const expirationTime = payload.exp * 1000 // Convert to milliseconds
     const currentTime = Date.now()
     const fiveMinutes = 5 * 60 * 1000 // 5 minutes in milliseconds
-    
+
     return expirationTime - currentTime < fiveMinutes
   } catch (error) {
     return true // If can't parse, assume expired
@@ -56,52 +71,52 @@ export const authAPI = {
 privateApiClient.interceptors.request.use(async (config) => {
   try {
     let token = localStorage.getItem('accessToken')
-    
+
     // Check if token needs refresh
     if (isTokenExpiringSoon(token)) {
       const refreshToken = localStorage.getItem('refreshToken')
       if (!refreshToken) {
         throw new Error('No refresh token available')
       }
-      
+
       console.log('Token expiring soon, refreshing...')
-      
+
       const api_response = await authAPI.refresh({ refresh_token: refreshToken })
       const response: RefreshResponse = api_response.data
 
       if (!response.access_token) {
         throw new Error('No access token in refresh response')
       }
-      
+
       // Update tokens
       localStorage.setItem('accessToken', response.access_token)
       if (response.refresh_token) {
         localStorage.setItem('refreshToken', response.refresh_token)
       }
-      
+
       // Use the new token
       token = response.access_token
       console.log('Token refreshed successfully')
     }
-    
+
     // Set authorization header
     if (token) {
       config.headers = config.headers || {}
       config.headers.Authorization = `Bearer ${token}`
     }
-    
+
     return config
-    
+
   } catch (error) {
     console.error('Token refresh failed:', error)
-    
+
     // Clear all auth data
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
-    
+
     // Redirect to login
     window.location.href = '/login'
-    
+
     return Promise.reject(error)
   }
 })
@@ -111,25 +126,25 @@ privateApiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
-      
+
       try {
         const refreshToken = localStorage.getItem('refreshToken')
         if (!refreshToken) throw new Error('No refresh token')
-        
+
         const api_response = await authAPI.refresh({ refresh_token: refreshToken })
         const response: RefreshResponse = api_response.data
         localStorage.setItem('accessToken', response.access_token)
         if (response.refresh_token) {
           localStorage.setItem('refreshToken', response.refresh_token)
         }
-        
+
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${response.access_token}`
         return axios.request(originalRequest)
-        
+
       } catch (refreshError) {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
@@ -137,7 +152,7 @@ privateApiClient.interceptors.response.use(
         return Promise.reject(refreshError)
       }
     }
-    
+
     return Promise.reject(error)
   }
 )
@@ -155,14 +170,7 @@ export const packsAPI = {
     })
     return response.data
   },
-  createPack: async (data: {
-    code: string
-    name: string
-    image_url: string
-    description: string
-    game_id: number
-    language_id: number
-  }) => {
+  createPack: async (data: CreatePackRequest) => {
     const response = await privateApiClient.post('/packs', data)
     return response.data
   },
@@ -184,7 +192,11 @@ export const kardsAPI = {
       params: { game_id: game_id, language_id: language_id, pack_id: pack_id, query: query, limit, offset }
     })
     return response.data
-  }
+  },
+  createPack: async (data: CreateKardRequest) => {
+    const response = await privateApiClient.post('/cards', data)
+    return response.data
+  },
 }
 
 export const protectedKardsAPI = {
@@ -211,7 +223,7 @@ export const gamesAPI = {
   },
   searchGames: async (query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Game[]>> => {
     const response = await publicApiClient.get('/games/search', {
-      params: {query: query, limit, offset }
+      params: { query: query, limit, offset }
     })
     return response.data
   }
@@ -226,7 +238,16 @@ export const languagesAPI = {
   },
   searchLanguages: async (query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Language[]>> => {
     const response = await publicApiClient.get('/languages/search', {
-      params: {query: query, limit, offset }
+      params: { query: query, limit, offset }
+    })
+    return response.data
+  }
+}
+
+export const raritiesAPI = {
+  getRarities: async (limit: number = 20, offset: number = 0): Promise<ApiResponse<Rarity[]>> => {
+    const response = await publicApiClient.get('/rarities', {
+      params: { limit, offset }
     })
     return response.data
   }
@@ -241,7 +262,7 @@ export const storagesAPI = {
   },
   searchStorages: async (query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Storage[]>> => {
     const response = await privateApiClient.get('/storages/search', {
-      params: {query: query, limit, offset }
+      params: { query: query, limit, offset }
     })
     return response.data
   }

@@ -12,11 +12,13 @@ export function SearchableSelect({
   value,
   options,
   onChange,
+  onSearchQueryChange,
 }: {
   label: string
   value: number
   options: Option[]
   onChange: (id: number) => void
+  onSearchQueryChange: (query: string) => void
 }) {
   const [search, setSearch] = useState("")
   const [open, setOpen] = useState(false)
@@ -36,7 +38,7 @@ export function SearchableSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full border p-2 rounded bg-white dark:bg-gray-800 
+        className="w-full border p-2 rounded bg-gray-200 dark:bg-gray-700 
                    border-gray-300 dark:border-gray-700 
                    text-gray-900 dark:text-gray-100 text-left"
       >
@@ -50,7 +52,10 @@ export function SearchableSelect({
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              onSearchQueryChange(e.target.value)
+            }}
             placeholder={`Search ${label.replace("Select ","")}...`}
             className="w-full p-2 border-b 
                        border-gray-200 dark:border-gray-700 

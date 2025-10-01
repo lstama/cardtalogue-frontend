@@ -12,6 +12,7 @@ import ProtectedRoute from './components/layout/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
 import { CartProvider } from "./contexts/CartContext"
 import { CreatePackPage } from './pages/CreatePackPage'
+import { CreateKardPage } from './pages/CreateKardPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,7 +48,7 @@ function App() {
                     </ProtectedRoute>
                   }>
                     <Route path="pack" element={<CreatePackPage />} />
-                    {/* <Route path="cards" element={<CreateKardPage />} /> */}
+                    <Route path="card" element={<CreateKardPage />} />
                     {/* <Route path="rarities" element={<CreateRarityPage />} /> */}
                   </Route>
                 </Routes>

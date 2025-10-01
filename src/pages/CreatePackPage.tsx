@@ -59,12 +59,13 @@ export const CreatePackPage = () => {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4">
+    <div className="max-w-xl mx-auto p-4 mt-7">
       <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
         Create Pack
       </h1>
 
-      <div className="space-y-4">
+      <div className="space-y-1">
+        <h5 className='text-sm dark:text-gray-100'>Code</h5>
         <input
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 
                      border-gray-300 dark:border-gray-700 
@@ -73,6 +74,7 @@ export const CreatePackPage = () => {
           value={form.code}
           onChange={(e) => handleChange('code', e.target.value)}
         />
+        <h5 className='text-sm dark:text-gray-100'>Name</h5>
         <input
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 
                      border-gray-300 dark:border-gray-700 
@@ -81,7 +83,7 @@ export const CreatePackPage = () => {
           value={form.name}
           onChange={(e) => handleChange('name', e.target.value)}
         />
-
+        <h5 className='text-sm dark:text-gray-100'>Image URL</h5>
         {/* Image input with check button */}
         <div className="flex gap-2">
           <input
@@ -115,7 +117,7 @@ export const CreatePackPage = () => {
             />
           </div>
         )}
-
+        <h5 className='text-sm dark:text-gray-100'>Description</h5>
         <textarea
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 
                      border-gray-300 dark:border-gray-700 
@@ -124,25 +126,27 @@ export const CreatePackPage = () => {
           value={form.description}
           onChange={(e) => handleChange('description', e.target.value)}
         />
-
+        <h5 className='text-sm dark:text-gray-100'>Game</h5>
         <SearchableSelect
           label="Select Game"
           value={form.game_id}
           options={games}
           onChange={(id) => handleChange("game_id", id)}
+          onSearchQueryChange={() => { }}
         />
-
+        <h5 className='text-sm dark:text-gray-100'>Language</h5>
         <SearchableSelect
           label="Select Language"
           value={form.language_id}
           options={languages}
           onChange={(id) => handleChange("language_id", id)}
+          onSearchQueryChange={() => { }}
         />
 
         <button
           className="w-full bg-blue-600 text-white p-2 rounded 
                      hover:bg-blue-700 dark:hover:bg-blue-500 
-                     flex justify-center items-center"
+                     flex justify-center items-center mt-8"
           onClick={handleSubmit}
           disabled={createPack.isPending}
         >

@@ -25,7 +25,7 @@ export const useSearchPacks = (
   })
 }
 
-// ✅ Create a new pack (mutation)
+// Create a new pack (mutation)
 export const useCreatePack = () => {
   const queryClient = useQueryClient()
 
