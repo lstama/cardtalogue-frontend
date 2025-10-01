@@ -1,4 +1,4 @@
-import { useQuery, keepPreviousData, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQuery, keepPreviousData, useMutation } from '@tanstack/react-query'
 import { kardsAPI } from '../services/api'
 
 export const useKards = (limit: number = 20, offset: number = 0) => {
@@ -36,7 +36,6 @@ export const useSearchKards = (
 
 // ✅ Create a new pack (mutation)
 export const useCreateKard = () => {
-  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: kardsAPI.createPack,
