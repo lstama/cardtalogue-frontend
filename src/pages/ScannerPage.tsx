@@ -20,11 +20,15 @@ export const ScannerPage: React.FC = () => {
     }, 1500);
   };
 
+  const CARD_WIDTH = 2.4;
+  const CARD_HEIGHT = 3.4;
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 p-6 flex flex-col">
       <div 
         onClick={() => setIsCameraOpen(true)}
-        className="relative w-40 aspect-[2.5/3.5] bg-white border-2 border-dashed border-slate-300 rounded-2xl mx-auto mb-8 cursor-pointer overflow-hidden flex items-center justify-center"
+        className="relative bg-white border-2 border-dashed border-slate-300 rounded-2xl mx-auto mb-8 cursor-pointer overflow-hidden flex items-center justify-center"
+        style={{ aspectRatio: `${CARD_WIDTH}/${CARD_HEIGHT}`, width: '160px' }}
       >
         {preview ? (
           <div className="relative h-full w-full">

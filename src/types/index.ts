@@ -54,7 +54,8 @@ export interface CreateKardRequest {
   price: number
   price_multiplier: number
   quantity: number
-  image_url: string
+  image_url?: string
+  media_id?: number
   description: string
   status: string
   for_sale: string
@@ -63,6 +64,35 @@ export interface CreateKardRequest {
   pack_id: number
   rarity_id: number
   storage_id: number
+}
+
+export interface CardMatch {
+  name: string;
+  confidence: number; // JSON uses 'confidence', not 'confidence_score'
+  detail: {
+    monster_effect: string | null;
+    pendulum_effect: string | null;
+    effect: string | null;
+  };
+}
+
+export interface Media {
+  id: number;
+  url: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MediaUploadResponse {
+  data: Media;
+  scan: {
+    scan: {
+      success: boolean;
+      matches: CardMatch[];
+      processing_time: number;
+    };
+  };
 }
 
 export interface ProtectedKard {

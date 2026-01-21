@@ -13,7 +13,9 @@ import {
   LoginRequest,
   LoginResponse,
   RefreshRequest,
-  RefreshResponse
+  RefreshResponse,
+  MediaUploadResponse,
+  CardMatch
 } from '../types'
 import { API_BASE_URL } from '../config/api'
 
@@ -265,5 +267,28 @@ export const storagesAPI = {
       params: { query: query, limit, offset }
     })
     return response.data
+  }
+}
+
+export const mediaAPI = {
+  uploadImage: async (file: File): Promise<MediaUploadResponse> => {
+    const formData = new FormData()
+    // Change 'image' to 'file' to match backend requirements
+    formData.append('file', file) 
+    
+    const response = await privateApiClient.post('/media/upload', formData)
+    return response.data.data
+  }
+}
+
+export const mediaAPIScan = {
+  uploadImage: async (file: File): Promise<any> => { // Using any here because of the nested scan object
+    const formData = new FormData()
+    formData.append('file', file) 
+    
+    const response = await privateApiClient.post('/media/upload?also_scan=true', formData)
+    
+    // FIX: Return the root response.data so we don't lose the "scan" property
+    return response.data 
   }
 }
