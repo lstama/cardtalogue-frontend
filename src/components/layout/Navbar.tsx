@@ -86,7 +86,7 @@ export default function Navbar() {
                             Cards
                         </NavLink>
 
-                        <NavLink to="/games"
+                        {/* <NavLink to="/games"
                             className={({ isActive }) => isActive
                                 ? "block py-2 px-3 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
                                 : "block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
@@ -104,7 +104,7 @@ export default function Navbar() {
                             onClick={closeAllDropdown}
                         >
                             Packs
-                        </NavLink>
+                        </NavLink> */}
 
                          {isAuthenticated && (
                             <NavLink to="/storages"
@@ -133,13 +133,13 @@ export default function Navbar() {
                         {isAuthenticated && (
                             <li className='relative'>
                                 <button onClick={() => setCreateOpen(!createOpen)} data-dropdown-toggle="dropdownNavbar" className="w-full md:w-auto text-left block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">
-                                    Create
+                                    Add
                                 </button>
                                 <div id="dropdownNavbar" className={`w-full md:w-auto md:absolute md:top-full md:left-0 z-10 font-normal bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600 ${createOpen ? 'block' : 'hidden'}`}>
                                     <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownLargeButton">
-                                        <NavLink to="/create/pack" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" onClick={closeAllDropdown}>
+                                        {/* <NavLink to="/create/pack" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" onClick={closeAllDropdown}>
                                             Pack
-                                        </NavLink>
+                                        </NavLink> */}
                                         <NavLink to="/create/card" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" onClick={closeAllDropdown}>
                                             Card
                                         </NavLink>

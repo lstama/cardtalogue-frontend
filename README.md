@@ -72,6 +72,11 @@ export default defineConfig([
 ])
 ```
 
-TODO:
-
+Done:
 Ignore pack and language
+also ignore games
+
+TODO:
+Quick add storage
+edit card
+duplicate -> submit will check if entry with the same name exist

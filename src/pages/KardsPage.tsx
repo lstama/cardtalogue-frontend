@@ -39,26 +39,27 @@ export const KardsPage = () => {
         useSearchKards(gameId, languageId, packId, query, limit, offset)
       }
       renderItem={(kard) => <KardCard key={kard.id} kard={kard} />}
-      filters={[
-        {
-          label: "Game",
-          value: gameId,
-          onChange: (val) => setGameId(Number(val)),
-          options: games,
-        },
-        {
-          label: "Language",
-          value: languageId,
-          onChange: (val) => setLanguageId(Number(val)),
-          options: languages,
-        },
-        {
-          label: "Pack",
-          value: packId,
-          onChange: (val) => setPackId(Number(val)),
-          options: packs,
-        },
-      ]}
+      // filters={
+      //   [
+      //   {
+      //     label: "Game",
+      //     value: gameId,
+      //     onChange: (val) => setGameId(Number(val)),
+      //     options: games,
+      //   },
+      //   {
+      //     label: "Language",
+      //     value: languageId,
+      //     onChange: (val) => setLanguageId(Number(val)),
+      //     options: languages,
+      //   },
+      //   {
+      //     label: "Pack",
+      //     value: packId,
+      //     onChange: (val) => setPackId(Number(val)),
+      //     options: packs,
+      //   },
+      // ]}
       noResultsText="No card found"
     />
   )

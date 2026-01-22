@@ -27,14 +27,14 @@ export const CreateKardPage = () => {
       storage_id: 0,
     }
   }
-  
+
   const [form, setForm] = useState(defaultFormState)
   const [games, setGames] = useState<{ id: number; name: string }[]>([])
   const [gameId, setGameId] = useState(0)
   const [languageId, setLanguageId] = useState(0)
   const [languages, setLanguages] = useState<{ id: number; name: string }[]>([])
   const [packs, setPacks] = useState<{ id: number; name: string }[]>([])
-  const [rarities, setRarities] = useState<{ id: number; name: string }[]>([])
+  const [rarities, setRarities] = useState<{ id: number; name: string; code: string }[]>([])
   const [storages, setStorages] = useState<{ id: number; name: string }[]>([])
   const [packsQuery, setPacksQuery] = useState('')
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
@@ -54,7 +54,7 @@ export const CreateKardPage = () => {
     gamesAPI.getGames(100, 0).then((res) => setGames(res.data))
     languagesAPI.getLanguages(100, 0).then((res) => setLanguages(res.data))
     storagesAPI.getStorages(100, 0).then((res) => setStorages(res.data))
-    raritiesAPI.getRarities(100, 0).then((res) => setRarities(res.data.map((rarity) => ({ ...rarity, name: rarity.code + '|' + rarity.name }))))
+    raritiesAPI.getRarities(100, 0).then((res) => setRarities(res.data.map((rarity) => ({ ...rarity }))))
   }, [])
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export const CreateKardPage = () => {
   return (
     <div className="max-w-xl mx-auto p-4 mt-7">
       <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-        Create Card
+        Add Card
       </h1>
 
       {/* Camera/Scanner UI */}
@@ -156,11 +156,10 @@ export const CreateKardPage = () => {
               <button
                 key={index}
                 onClick={() => applyMatch(index)}
-                className={`w-full p-3 rounded-lg text-left border-2 transition-all ${
-                  selectedMatchIndex === index 
-                  ? 'border-green-600 bg-green-50 dark:bg-green-900/40' 
-                  : 'border-gray-100 dark:border-gray-700 hover:border-green-200'
-                }`}
+                className={`w-full p-3 rounded-lg text-left border-2 transition-all ${selectedMatchIndex === index
+                    ? 'border-green-600 bg-green-50 dark:bg-green-900/40'
+                    : 'border-gray-100 dark:border-gray-700 hover:border-green-200'
+                  }`}
               >
                 <div className="flex justify-between font-bold text-sm text-gray-900 dark:text-gray-100">
                   <span>{match.name}</span>
@@ -169,7 +168,7 @@ export const CreateKardPage = () => {
               </button>
             ))}
           </div>
-          <button 
+          <button
             onClick={() => setShowMatchSelector(false)}
             className="w-full mt-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700"
           >
@@ -195,7 +194,7 @@ export const CreateKardPage = () => {
           onChange={(e) => handleChange('name', e.target.value)}
         />
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>Price (Yen)</h5>
+        <h5 className='text-sm dark:text-gray-100 font-semibold'>Price (Yen, for now x100)</h5>
         <input
           type="number"
           min={1}
@@ -204,39 +203,79 @@ export const CreateKardPage = () => {
           onChange={(e) => handleChange('price', Math.max(1, Number(e.target.value)))}
         />
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>Price Multiplier (to calculate Rupiah)</h5>
+        {/* <h5 className='text-sm dark:text-gray-100 font-semibold'>Price Multiplier (to calculate Rupiah)</h5>
         <input
           type="number"
           min={1}
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
           value={form.price_multiplier}
           onChange={(e) => handleChange('price_multiplier', Math.max(1, Number(e.target.value)))}
-        />
+        /> */}
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>Quantity</h5>
+        {/* <h5 className='text-sm dark:text-gray-100 font-semibold'>Quantity</h5>
         <input
           type="number"
           min={0}
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
           value={form.quantity}
           onChange={(e) => handleChange('quantity', Math.max(0, Number(e.target.value)))}
-        />
+        /> */}
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>Status</h5>
+        <h5 className='text-sm dark:text-gray-100 font-semibold'>Quantity</h5>
+        <div className="flex gap-2">
+          {[0, 1, 2, 3, 4, 5].map((qty) => (
+            <button
+              key={qty}
+              type="button"
+              onClick={() => handleChange('quantity', qty)}
+              className={`w-10 h-10 rounded-lg font-bold border transition-all
+        ${form.quantity === qty
+                  ? 'bg-green-600 text-white border-green-600'
+                  : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:border-green-400 dark:text-gray-100'
+                }
+      `}
+            >
+              {qty}
+            </button>
+          ))}
+        </div>
+
+
+        {/* <h5 className='text-sm dark:text-gray-100 font-semibold'>Status</h5>
         <Select
           label="Select Status"
           value={form.status}
           options={[{id: "enabled", name:"Enabled"}, {id: "disabled", name:"Disabled"}]}
           onChange={(id) => handleChange("status", id)}
-        />
+        /> */}
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>For Sale?</h5>
+        {/* <h5 className='text-sm dark:text-gray-100 font-semibold'>For Sale?</h5>
         <Select
           label="Select For Sale"
           value={form.for_sale}
           options={[{id: "yes", name:"Yes"}, {id: "no", name:"No"}]}
           onChange={(id) => handleChange("for_sale", id)}
-        />
+        /> */}
+
+        <h5 className='text-sm dark:text-gray-100 font-semibold'>For Sale?</h5>
+        <div className="flex gap-2">
+          {['yes', 'no'].map((val) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => handleChange('for_sale', val)}
+              className={`flex-1 py-2 rounded-lg font-bold border transition-all
+        ${form.for_sale === val
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:border-blue-400 dark:text-gray-100'
+                }
+      `}
+            >
+              {val === 'yes' ? 'Yes' : 'No'}
+            </button>
+          ))}
+        </div>
+
 
         <h5 className='text-sm dark:text-gray-100 font-semibold'>Image URL</h5>
         <div className="flex gap-2">
@@ -275,7 +314,7 @@ export const CreateKardPage = () => {
           onChange={(e) => handleChange('description', e.target.value)}
         />
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>Game</h5>
+        {/* <h5 className='text-sm dark:text-gray-100 font-semibold'>Game</h5>
         <SearchableSelect
           label="Select Game"
           value={form.game_id}
@@ -285,9 +324,9 @@ export const CreateKardPage = () => {
             setGameId(id as number)
           }}
           onSearchQueryChange={() => { }}
-        />
+        /> */}
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>Language</h5>
+        {/* <h5 className='text-sm dark:text-gray-100 font-semibold'>Language</h5>
         <SearchableSelect
           label="Select Language"
           value={form.language_id}
@@ -297,25 +336,65 @@ export const CreateKardPage = () => {
             setLanguageId(id as number)
           }}
           onSearchQueryChange={() => { }}
-        />
+        /> */}
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>Pack</h5>
+        {/* <h5 className='text-sm dark:text-gray-100 font-semibold'>Pack</h5>
         <SearchableSelect
           label="Select Pack"
           value={form.pack_id}
           options={packs}
           onChange={(id) => handleChange("pack_id", id)}
           onSearchQueryChange={(q) => setPacksQuery(q)}
-        />
+        /> */}
 
-        <h5 className='text-sm dark:text-gray-100 font-semibold'>Rarity</h5>
+        {/* <h5 className='text-sm dark:text-gray-100 font-semibold'>Rarity</h5>
         <SearchableSelect
           label="Select Rarity"
           value={form.rarity_id}
           options={rarities}
           onChange={(id) => handleChange("rarity_id", id)}
           onSearchQueryChange={() => { }}
+        /> */}
+
+        <h5 className='text-sm dark:text-gray-100 font-semibold'>Rarity</h5>
+
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          {rarities
+            .filter(r => ['N', 'R', 'SR', 'UR', 'SE', 'UL', 'PSE', 'QCSE'].includes(r.code))
+            .map((rarity) => (
+              <button
+                key={rarity.id}
+                type="button"
+                onClick={() => handleChange('rarity_id', rarity.id)}
+                className={`py-2 rounded-lg font-bold border transition-all
+          ${form.rarity_id === rarity.id
+                    ? 'bg-purple-600 text-white border-purple-600'
+                    : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:border-purple-400 dark:text-gray-100'
+                  }
+        `}
+              >
+                {rarity.code}
+              </button>
+            ))}
+        </div>
+
+        <SearchableSelect
+          label="Other Rarity"
+          value={
+            rarities.some(r =>
+              !['N', 'R', 'SR', 'UR', 'SE', 'UL', 'PSE', 'QCSE'].includes(r.code) &&
+              r.id === form.rarity_id
+            )
+              ? form.rarity_id
+              : 0
+          }
+          options={rarities.filter(r =>
+            !['N', 'R', 'SR', 'UR', 'SE', 'UL', 'PSE', 'QCSE'].includes(r.code)
+          )}
+          onChange={(id) => handleChange('rarity_id', id)}
+          onSearchQueryChange={() => { }}
         />
+
 
         <h5 className='text-sm dark:text-gray-100 font-semibold'>Storage</h5>
         <SearchableSelect

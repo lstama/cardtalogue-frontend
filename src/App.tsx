@@ -2,8 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from './components/layout/Layout'
 import { KardsPage } from './pages/KardsPage'
-import { PacksPage } from './pages/PacksPage'
-import { GamesPage } from './pages/GamesPage'
+// import { PacksPage } from './pages/PacksPage'
+// import { GamesPage } from './pages/GamesPage'
 import { CartPage } from './pages/CartPage'
 import { StoragesPage } from './pages/StoragesPage'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -13,7 +13,7 @@ import LoginPage from './pages/LoginPage'
 import { CartProvider } from "./contexts/CartContext"
 import { CreatePackPage } from './pages/CreatePackPage'
 import { CreateKardPage } from './pages/CreateKardPage'
-import { ScannerPage } from './pages/ScannerPage'
+// import { ScannerPage } from './pages/ScannerPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,11 +34,11 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/" element={<KardsPage />} />
-                  <Route path="/packs" element={<PacksPage />} />
-                  <Route path="/games" element={<GamesPage />} />
+                  {/* <Route path="/packs" element={<PacksPage />} /> */}
+                  {/* <Route path="/games" element={<GamesPage />} /> */}
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/cart" element={<CartPage />} />
-                  <Route path="/scanner" element={<ScannerPage />} />
+                  {/* <Route path="/scanner" element={<ScannerPage />} /> */}
                   <Route path="/storages" element={
                     <ProtectedRoute>
                       <StoragesPage />

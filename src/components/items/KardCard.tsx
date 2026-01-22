@@ -64,9 +64,9 @@ export const KardCard = ({ kard }: KardCardProps) => {
               <div className="flex flex-wrap items-center gap-1">
                 <StaticTag text={kard.code} color="red" />
                 <StaticTag text={kard.rarity_code} color="green" />
-                <StaticTag text={kard.pack_code} color="blue" />
-                <StaticTag text={kard.game_name} color="yellow" />
-                <StaticTag text={kard.language_code} color="purple" />
+                {/* <StaticTag text={kard.pack_code} color="blue" /> */}
+                {/* <StaticTag text={kard.game_name} color="yellow" /> */}
+                {/* <StaticTag text={kard.language_code} color="purple" /> */}
               </div>
             </div>
 
