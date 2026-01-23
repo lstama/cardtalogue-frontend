@@ -1,5 +1,5 @@
 import { useQuery, keepPreviousData, useMutation } from '@tanstack/react-query'
-import { kardsAPI } from '../services/api'
+import { kardsAPI, protectedKardsAPI } from '../services/api'
 
 export const useKards = (limit: number = 20, offset: number = 0) => {
   return useQuery({
@@ -14,6 +14,18 @@ export const useKard = (id: number = 1) => {
     queryKey: ['kard', id],
     queryFn: () => kardsAPI.getKard(id),
     staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
+
+export const useProtectedKard = (id: number | null) => {
+  return useQuery({
+    queryKey: ['protected-kard', id],
+    queryFn: () => {
+      if (id === null) throw new Error('ID is required')
+      return protectedKardsAPI.getKard(id)
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: id !== null,
   })
 }
 
@@ -43,5 +55,12 @@ export const useCreateKard = () => {
     //   // Invalidate and refetch packs list after creation
     //   queryClient.invalidateQueries({ queryKey: ['packs'] })
     // },
+  })
+}
+
+// ✅ Update a card (mutation)
+export const useUpdateKard = (id: number) => {
+  return useMutation({
+    mutationFn: (data: any) => protectedKardsAPI.updateKard(id, data),
   })
 }

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 export interface CartItem {
   id: number
+  code: string
   name: string
   quantity: number
   price: number
@@ -14,6 +15,7 @@ interface CartContextType {
   getQuantity: (id: number) => number
   addToCart: (
     id: number,
+    code: string,
     name: string,
     price: number,
     priceMultiplier: number,
@@ -65,6 +67,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = (
     id: number,
+    code: string,
     name: string,
     price: number,
     priceMultiplier: number,
@@ -79,7 +82,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             : c
         )
       }
-      return [...prev, { id, name, price, priceMultiplier, maxQuantity, quantity: 1 }]
+      return [...prev, { id, code, name, price, priceMultiplier, maxQuantity, quantity: 1 }]
     })
   }
 

@@ -6,6 +6,7 @@ import { KardsPage } from './pages/KardsPage'
 // import { GamesPage } from './pages/GamesPage'
 import { CartPage } from './pages/CartPage'
 import { StoragesPage } from './pages/StoragesPage'
+import { UpdateStockPage } from "./pages/UpdateStockPage"
 import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
@@ -38,6 +39,11 @@ function App() {
                   {/* <Route path="/games" element={<GamesPage />} /> */}
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/cart" element={<CartPage />} />
+                  <Route path="/stock-update" element={
+                    <ProtectedRoute>
+                      <UpdateStockPage />
+                    </ProtectedRoute>
+                  } />
                   {/* <Route path="/scanner" element={<ScannerPage />} /> */}
                   <Route path="/storages" element={
                     <ProtectedRoute>
@@ -51,6 +57,7 @@ function App() {
                   }>
                     <Route path="pack" element={<CreatePackPage />} />
                     <Route path="card" element={<CreateKardPage />} />
+                    <Route path="card/:id" element={<CreateKardPage />} />
                     {/* <Route path="rarities" element={<CreateRarityPage />} /> */}
                   </Route>
                 </Routes>

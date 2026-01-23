@@ -31,7 +31,7 @@ export const CartPage = () => {
                                 className="flex justify-between items-center border p-2 rounded text-sm dark:border-gray-300"
                             >
                                 <div className="flex-1">
-                                    <p className="font-semibold  dark:text-gray-100">{item.name}</p>
+                                    <p className="font-semibold  dark:text-gray-100">{item.name} ({item.code})</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-200">
                                         Qty: {item.quantity} / {item.maxQuantity}
                                     </p>
@@ -48,7 +48,7 @@ export const CartPage = () => {
                                         -1
                                     </Button>
                                     <Button
-                                        onClick={() => addToCart(item.id, item.name, item.price, item.priceMultiplier, item.maxQuantity)}
+                                        onClick={() => addToCart(item.id, item.code, item.name, item.price, item.priceMultiplier, item.maxQuantity)}
                                         disabled={item.quantity >= item.maxQuantity}
                                         className="text-xs px-2 py-1 dark:bg-blue-200 dark:hover:bg-blue-100"
                                     >

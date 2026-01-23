@@ -2,8 +2,8 @@ import { useState, useEffect } from "react"
 import { Kard } from "../../types"
 import { Card, CardContent } from "../ui/Card"
 import { StaticTag } from "../ui/StaticTag"
-// import { NavLink } from "react-router-dom"
-// import { useAuth } from "../../contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "../../contexts/AuthContext"
 import { useCart } from "../../contexts/CartContext"
 
 interface KardCardProps {
@@ -11,7 +11,8 @@ interface KardCardProps {
 }
 
 export const KardCard = ({ kard }: KardCardProps) => {
-  // const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
   const [flipped, setFlipped] = useState(false)
   const { getQuantity, addToCart, removeFromCart, fixQuantity } = useCart()
   const quantityInCart = getQuantity(kard.id)
@@ -122,6 +123,7 @@ export const KardCard = ({ kard }: KardCardProps) => {
                 onClick={() =>
                   addToCart(
                     kard.id,
+                    kard.code,
                     kard.name,
                     kard.price,
                     kard.price_multiplier,
@@ -136,6 +138,16 @@ export const KardCard = ({ kard }: KardCardProps) => {
                      disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add to Cart
+              </button>
+              )}
+
+              {isAuthenticated && (
+              <button
+                onClick={() => navigate(`/create/card/${kard.id}`)}
+                className="w-full text-xs px-2 py-1 bg-purple-600 text-white rounded 
+                     hover:bg-purple-700"
+              >
+                Edit Card
               </button>
               )}
 

@@ -199,6 +199,10 @@ export const kardsAPI = {
     const response = await privateApiClient.post('/cards', data)
     return response.data
   },
+  updateKard: async (id: number, data: CreateKardRequest) => {
+    const response = await privateApiClient.put('/cards/' + id, data)
+    return response.data
+  },
 }
 
 export const protectedKardsAPI = {
@@ -213,7 +217,11 @@ export const protectedKardsAPI = {
   getKard: async (id: number = 1): Promise<ApiResponse<ProtectedKard>> => {
     const response = await privateApiClient.get('/cards/protected/' + id)
     return response.data
-  }
+  },
+  updateKard: async (id: number, data: CreateKardRequest) => {
+    const response = await privateApiClient.put('/cards/protected/' + id, data)
+    return response.data
+  },
 }
 
 export const gamesAPI = {
@@ -262,10 +270,18 @@ export const storagesAPI = {
     })
     return response.data
   },
+  getStorage: async (id: number): Promise<ApiResponse<Storage>> => {
+    const response = await privateApiClient.get('/storages/' + id)
+    return response.data
+  },
   searchStorages: async (query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Storage[]>> => {
     const response = await privateApiClient.get('/storages/search', {
       params: { query: query, limit, offset }
     })
+    return response.data
+  },
+  createStorage: async (data: { code: string; name: string; description: string }): Promise<ApiResponse<Storage>> => {
+    const response = await privateApiClient.post('/storages', data)
     return response.data
   }
 }
