@@ -77,6 +77,5 @@ Ignore pack and language
 also ignore games
 
 TODO:
-Quick add storage
-edit card
-duplicate -> submit will check if entry with the same name exist
+duplicate -> submit will check if entry with the same code exist, if exist notice user
+separate card search for admin that utilize get protected card

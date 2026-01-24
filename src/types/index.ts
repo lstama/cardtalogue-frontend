@@ -104,6 +104,7 @@ export interface ProtectedKard {
   quantity: number
   status: string
   for_sale: string
+  enabled: string
   pack_id: number
   pack_name: string
   pack_code: string

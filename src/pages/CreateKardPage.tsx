@@ -25,11 +25,11 @@ export const CreateKardPage = () => {
       description: '',
       status: 'enabled',
       for_sale: 'yes',
-      game_id: 0,
-      language_id: 0,
-      pack_id: 0,
-      rarity_id: 0,
-      storage_id: 0,
+      game_id: 1,
+      language_id: 1,
+      pack_id: 1,
+      rarity_id: 1,
+      storage_id: 1,
     }
   }
 
@@ -253,10 +253,10 @@ export const CreateKardPage = () => {
       <div className="space-y-1">
         <h5 className='text-sm dark:text-gray-100 font-semibold'>Code</h5>
         <input
-          className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+          className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 uppercase"
           placeholder="Code"
           value={form.code}
-          onChange={(e) => handleChange('code', e.target.value)}
+          onChange={(e) => handleChange('code', e.target.value.toUpperCase())}
         />
 
         <h5 className='text-sm dark:text-gray-100 font-semibold'>Name</h5>
@@ -270,7 +270,6 @@ export const CreateKardPage = () => {
         <h5 className='text-sm dark:text-gray-100 font-semibold'>Price (Yen, for now x100)</h5>
         <input
           type="number"
-          min={1}
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
           value={form.price}
           onChange={(e) => handleChange('price', Math.max(1, Number(e.target.value)))}
@@ -349,6 +348,24 @@ export const CreateKardPage = () => {
           ))}
         </div>
 
+        <h5 className='text-sm dark:text-gray-100 font-semibold'>Show card to public?</h5>
+        <div className="flex gap-2">
+          {['enabled', 'disabled'].map((val) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => handleChange('status', val)}
+              className={`flex-1 py-2 rounded-lg font-bold border transition-all
+        ${form.status === val
+                  ? 'bg-green-600 text-white border-green-600'
+                  : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:border-green-400 dark:text-gray-100'
+                }
+      `}
+            >
+              {val === 'enabled' ? 'Yes' : 'No'}
+            </button>
+          ))}
+        </div>
 
         <h5 className='text-sm dark:text-gray-100 font-semibold'>Image URL</h5>
         <div className="flex gap-2">

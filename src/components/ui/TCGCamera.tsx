@@ -1,9 +1,6 @@
 import React, { useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 
-// Yu-Gi-Oh ratio: 3.4 / 2.4 = 1.416
-const TARGET_RATIO = 1.4166; 
-
 export const processImage = (
   base64Str: string,
   crop: { x: number; y: number; width: number; height: number },

@@ -42,7 +42,7 @@ export const KardCard = ({ kard }: KardCardProps) => {
                 <img
                   src={kard.image_url}
                   alt={kard.name}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover transition-all duration-300 ${kard.status === "disabled" ? "grayscale opacity-75" : ""}`}
                   loading="lazy"
                 />
                 <span
@@ -65,6 +65,9 @@ export const KardCard = ({ kard }: KardCardProps) => {
               <div className="flex flex-wrap items-center gap-1">
                 <StaticTag text={kard.code} color="red" />
                 <StaticTag text={kard.rarity_code} color="green" />
+                {kard.status === "disabled" && (
+                  <StaticTag text="Disabled" color="yellow" />
+                )}
                 {/* <StaticTag text={kard.pack_code} color="blue" /> */}
                 {/* <StaticTag text={kard.game_name} color="yellow" /> */}
                 {/* <StaticTag text={kard.language_code} color="purple" /> */}
@@ -92,7 +95,7 @@ export const KardCard = ({ kard }: KardCardProps) => {
             </h4>
 
             {/* Description */}
-            <p className="text-gray-600 dark:text-gray-400 mt-1 mb-2 text-[10px] line-clamp-4">
+            <p className="text-gray-600 dark:text-gray-400 mt-1 mb-2 text-[10px]">
               {kard.description}
             </p>
 

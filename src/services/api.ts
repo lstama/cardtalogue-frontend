@@ -14,27 +14,26 @@ import {
   LoginResponse,
   RefreshRequest,
   RefreshResponse,
-  MediaUploadResponse,
-  CardMatch
+  MediaUploadResponse
 } from '../types'
 import { API_BASE_URL } from '../config/api'
 
 const privateApiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 1000000,
   withCredentials: true,
 })
 
 const publicApiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 1000000,
   withCredentials: true,
 })
 
 // Prevent intercerptors loop
 const authApiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 1000000,
   withCredentials: true,
 })
 
@@ -73,6 +72,11 @@ export const authAPI = {
 privateApiClient.interceptors.request.use(async (config) => {
   try {
     let token = localStorage.getItem('accessToken')
+
+    // If no token at all, just proceed without auth
+    if (!token) {
+      return config
+    }
 
     // Check if token needs refresh
     if (isTokenExpiringSoon(token)) {
@@ -190,7 +194,7 @@ export const kardsAPI = {
     return response.data
   },
   searchKards: async (game_id: number = 0, language_id: number = 0, pack_id: number = 0, query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Kard[]>> => {
-    const response = await publicApiClient.get('/cards/search', {
+    const response = await privateApiClient.get('/cards/search', {
       params: { game_id: game_id, language_id: language_id, pack_id: pack_id, query: query, limit, offset }
     })
     return response.data
