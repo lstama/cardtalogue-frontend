@@ -1,13 +1,15 @@
-import { ReactNode } from 'react'
-// import { DarkModeToggle } from '../ui/DarkModeToggle'
-import Navbar from './Navbar'
+import React from 'react';
+import Navbar from './Navbar';
+
 interface LayoutProps {
-  children: ReactNode
+  children: React.ReactNode;
 }
 
-export const Layout = ({ children }: LayoutProps) => {
-  
-  
+/**
+ * Main layout wrapper for the application.
+ * Provides the consistent structure including the Navbar and content container.
+ */
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
@@ -15,5 +17,7 @@ export const Layout = ({ children }: LayoutProps) => {
         {children}
       </main>
     </div>
-  )
-}
+  );
+};
+
+export default Layout;

@@ -1,22 +1,39 @@
-import { useQuery, keepPreviousData, useMutation } from '@tanstack/react-query'
+import { useQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query'
 import { kardsAPI, protectedKardsAPI } from '../services/api'
+import { CreateKardRequest } from '../types'
 
-export const useKards = (limit: number = 20, offset: number = 0) => {
+/**
+ * Fetch a list of Kards with optional filters.
+ */
+export const useKards = (
+  gameId: number = 0,
+  languageId: number = 0,
+  packId: number = 0,
+  query: string = '',
+  limit: number = 20,
+  offset: number = 0
+) => {
   return useQuery({
-    queryKey: ['kards', limit, offset],
-    queryFn: () => kardsAPI.getKards(limit, offset),
+    queryKey: ['kards', gameId, languageId, packId, query, limit, offset],
+    queryFn: () => kardsAPI.searchKards(gameId, languageId, packId, query, limit, offset),
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 
+/**
+ * Fetch a single Kard by ID.
+ */
 export const useKard = (id: number = 1) => {
   return useQuery({
     queryKey: ['kard', id],
     queryFn: () => kardsAPI.getKard(id),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes,
   })
 }
 
+/**
+ * Fetch a single Protected Kard by ID.
+ */
 export const useProtectedKard = (id: number | null) => {
   return useQuery({
     queryKey: ['protected-kard', id],
@@ -24,43 +41,36 @@ export const useProtectedKard = (id: number | null) => {
       if (id === null) throw new Error('ID is required')
       return protectedKardsAPI.getKard(id)
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes,
     enabled: id !== null,
   })
 }
 
-export const useSearchKards = (
-  gameId: number,
-  languageId: number,
-  packId: number,
-  query: string,
-  limit: number = 20,
-  offset: number = 0
-) => {
-  return useQuery({
-    queryKey: ['kards/search', gameId, languageId, packId, query, limit, offset],
-    queryFn: () => kardsAPI.searchKards(gameId, languageId, packId, query, limit, offset),
-    staleTime: 5 * 60 * 1000,
-    placeholderData: keepPreviousData,
-    enabled: false,
-  })
-}
-
-// ✅ Create a new pack (mutation)
+/**
+ * Create a new Kard.
+ */
 export const useCreateKard = () => {
+  const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: kardsAPI.createPack,
-    // onSuccess: () => {
-    //   // Invalidate and refetch packs list after creation
-    //   queryClient.invalidateQueries({ queryKey: ['packs'] })
-    // },
+    mutationFn: kardsAPI.createKard,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kards'] })
+    },
   })
 }
 
-// ✅ Update a card (mutation)
+/**
+ * Update a Protected Kard (e.g., updating stock).
+ */
 export const useUpdateKard = (id: number) => {
+  const queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: (data: any) => protectedKardsAPI.updateKard(id, data),
+    mutationFn: (data: CreateKardRequest) => protectedKardsAPI.updateKard(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['protected-kard', id] })
+      queryClient.invalidateQueries({ queryKey: ['kards'] })
+    },
   })
 }

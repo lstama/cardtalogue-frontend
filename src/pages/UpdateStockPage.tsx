@@ -1,73 +1,78 @@
-import { useState } from "react"
-import { LoadingSpinner } from "../components/ui/LoadingSpinner"
-import { CartItem } from "../contexts/CartContext"
-import { protectedKardsAPI, storagesAPI } from "../services/api"
+import React, { useState } from 'react';
+import { Button } from '../components/ui/Button';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { CartItem } from '../contexts/CartContext';
+import { protectedKardsAPI, storagesAPI } from '../services/api';
 
-export const UpdateStockPage = () => {
-  const [jsonInput, setJsonInput] = useState("")
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
+/**
+ * Page component for updating stock quantities based on a JSON input.
+ */
+const UpdateStockPage: React.FC = () => {
+  const [jsonInput, setJsonInput] = useState('');
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [stockStatus, setStockStatus] = useState<{
-    item: CartItem
-    available: number
-    cardCode: string
-    storageCode: string
-    isSufficient: boolean
-  }[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
+    item: CartItem;
+    available: number;
+    cardCode: string;
+    storageCode: string;
+    isSufficient: boolean;
+  }[]>([]);
+  
+  const [error, setError] = useState<Error | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const validateAndParseJSON = () => {
-    setError(null)
+    setError(null);
     try {
-      const parsed = JSON.parse(jsonInput)
+      const parsed = JSON.parse(jsonInput);
       
       if (!Array.isArray(parsed)) {
-        setError("JSON must be an array of cart items")
-        return
+        setError(new Error('JSON must be an array of cart items'));
+        return;
       }
 
       if (parsed.length === 0) {
-        setError("Cart is empty")
-        return
+        setError(new Error('Cart is empty'));
+        return;
       }
 
       // Validate each item has required fields
       for (const item of parsed) {
         if (!item.id || !item.name || item.quantity === undefined || item.maxQuantity === undefined) {
-          setError("Each item must have: id, name, quantity, maxQuantity")
-          return
+          setError(new Error('Each item must have: id, name, quantity, maxQuantity'));
+          return;
         }
       }
 
-      setCartItems(parsed)
-      checkStock(parsed)
+      setCartItems(parsed);
+      checkStock(parsed);
     } catch (err: any) {
-      setError(err.message || "Invalid JSON format")
+      setError(new Error(err.message || 'Invalid JSON format'));
     }
-  }
+  };
 
   const checkStock = async (items: CartItem[]) => {
-    setIsProcessing(true)
+    setIsProcessing(true);
     try {
       const status = await Promise.all(
         items.map(async (item) => {
-          const response = await protectedKardsAPI.getKard(item.id)
-          const kard = response.data
+          const response = await protectedKardsAPI.getKard(item.id);
+          const kard = response.data;
           
           if (!kard) {
-            throw new Error(`Card with ID ${item.id} not found`)
+            throw new Error(`Card with ID ${item.id} not found`);
           }
 
           // Fetch storage to get the storage code
-          let storageCode = ""
+          let storageCode = '';
           try {
-            const storageResponse = await storagesAPI.getStorage(kard.storage_id)
-            console.log("Storage response:", storageResponse)
-            storageCode = storageResponse.data.code || ""
+            const storageResponse = await storagesAPI.getStorage(kard.storage_id);
+            storageCode = storageResponse.data.code || '';
           } catch (err) {
-            console.warn(`Could not fetch storage ${kard.storage_id}:`, err)
+            console.warn(`Could not fetch storage ${kard.storage_id}:`, err);
           }
 
           return {
@@ -76,57 +81,56 @@ export const UpdateStockPage = () => {
             cardCode: kard.code,
             storageCode: storageCode,
             isSufficient: kard.quantity >= item.quantity,
-          }
+          };
         })
-      )
+      );
       
-      setStockStatus(status)
+      setStockStatus(status);
     } catch (err: any) {
-      setError(err.message || "Failed to check stock")
-      setStockStatus([])
+      setError(new Error(err.message || 'Failed to check stock'));
+      setStockStatus([]);
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   const handleClear = () => {
-    setJsonInput("")
-    setCartItems([])
-    setStockStatus([])
-    setError(null)
-  }
+    setJsonInput('');
+    setCartItems([]);
+    setStockStatus([]);
+    setError(null);
+  };
 
   const handleUpdateStock = async () => {
-    setIsUpdating(true)
+    setIsUpdating(true);
     try {
       // Update each card's quantity by decreasing it
       await Promise.all(
         cartItems.map(async (item) => {
-          const response = await protectedKardsAPI.getKard(item.id)
-          const kard = response.data
+          const response = await protectedKardsAPI.getKard(item.id);
+          const kard = response.data;
           
           // Decrease quantity
-          const newQuantity = kard.quantity - item.quantity
+          const newQuantity = kard.quantity - item.quantity;
           
           await protectedKardsAPI.updateKard(item.id, {
             ...kard,
             quantity: Math.max(0, newQuantity),
-          } as any)
+          } as any);
         })
-      )
+      );
 
-      // Success - clear and show message
-      alert("Stock updated successfully!")
-      handleClear()
+      alert('Stock updated successfully!');
+      handleClear();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to update stock")
+      setError(new Error(err.response?.data?.message || err.message || 'Failed to update stock'));
     } finally {
-      setIsUpdating(false)
-      setShowConfirmModal(false)
+      setIsUpdating(false);
+      setShowConfirmModal(false);
     }
-  }
+  };
 
-  const allSufficient = stockStatus.length > 0 && stockStatus.every((s) => s.isSufficient)
+  const allSufficient = stockStatus.length > 0 && stockStatus.every((s) => s.isSufficient);
 
   return (
     <div className="max-w-2xl mx-auto p-4 mt-7">
@@ -144,29 +148,24 @@ export const UpdateStockPage = () => {
         />
 
         <div className="flex gap-2 mt-3">
-          <button
+          <Button
             onClick={validateAndParseJSON}
             disabled={!jsonInput.trim() || isProcessing}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:opacity-50 font-bold flex items-center justify-center gap-2"
+            className="flex-1"
           >
-            {isProcessing ? <LoadingSpinner size="sm" /> : "Check Stock"}
-          </button>
-          <button
+            {isProcessing ? <LoadingSpinner size="sm" /> : 'Check Stock'}
+          </Button>
+          <Button
             onClick={handleClear}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 font-bold"
+            variant="outline"
           >
             Clear
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Error Display */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
-          <p className="text-red-600 dark:text-red-400 font-semibold">Error:</p>
-          <p className="text-red-600 dark:text-red-400">{error}</p>
-        </div>
-      )}
+      {error && <ErrorMessage error={error} />}
 
       {/* Stock Status Table */}
       {stockStatus.length > 0 && (
@@ -183,7 +182,7 @@ export const UpdateStockPage = () => {
                   <th className="border border-gray-300 dark:border-gray-700 p-2 text-center text-gray-900 dark:text-gray-100">Status</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {stockStatus.map((status) => (
                   <tr key={status.item.id}>
                     <td className="border border-gray-300 dark:border-gray-700 p-2 text-gray-900 dark:text-gray-100">
@@ -206,7 +205,7 @@ export const UpdateStockPage = () => {
                             : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                         }`}
                       >
-                        {status.isSufficient ? "✓ OK" : "✗ Insufficient"}
+                        {status.isSufficient ? '✓ OK' : '✗ Insufficient'}
                       </span>
                     </td>
                   </tr>
@@ -215,28 +214,28 @@ export const UpdateStockPage = () => {
             </table>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3 mt-4">
-            <button
+            <Button
               onClick={() => setShowConfirmModal(true)}
+              variant="primary"
               disabled={!allSufficient}
-              className="flex-1 px-4 py-3 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg"
+              className="flex-1"
             >
               Update Stock
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleClear}
-              className="px-4 py-3 bg-gray-600 text-white rounded hover:bg-gray-700 font-bold"
+              variant="outline"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[100]">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[100] p-4">
           <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg max-w-md w-full">
             <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">
               Confirm Stock Update
@@ -263,24 +262,26 @@ export const UpdateStockPage = () => {
             </div>
 
             <div className="flex justify-end space-x-2">
-              <button
+              <Button
                 className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-400 font-bold"
                 onClick={() => setShowConfirmModal(false)}
                 disabled={isUpdating}
               >
                 Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2 font-bold disabled:opacity-50"
+              </Button>
+              <Button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2 font-bold"
                 onClick={handleUpdateStock}
                 disabled={isUpdating}
               >
-                {isUpdating ? <LoadingSpinner size="sm" /> : "Confirm & Update"}
-              </button>
+                {isUpdating ? <LoadingSpinner size="sm" /> : 'Confirm & Update'}
+              </Button>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
+
+export default UpdateStockPage;

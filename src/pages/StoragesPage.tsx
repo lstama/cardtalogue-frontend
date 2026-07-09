@@ -1,18 +1,38 @@
-// pages/StoragesPage.tsx
-import { SearchLayout } from "../components/layout/Search"
-import { StorageCard } from "../components/items/StorageCard"
-import { useSearchStorages } from "../hooks/useStorages"
+import React, { useState } from 'react';
+import { SearchLayout } from '../components/layout/Search';
+import { StorageCard } from '../components/items/StorageCard';
+import { useStorages } from '../hooks/useStorages';
 
-export const StoragesPage = () => {
+/**
+ * Page component for browsing Kard Storages.
+ */
+const StoragesPage: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [limit, setLimit] = useState<number>(20);
+  const [offset, setOffset] = useState<number>(0);
+
+  // Fetch storages based on search query and pagination
+  const { data, isLoading, error, refetch } = useStorages(limit, offset, query);
+
+  const handleSearch = () => {
+    setOffset(0);
+    refetch();
+  };
+
   return (
     <SearchLayout
-      title="Card Storages"
+      title="Kard Storages"
       description="Card Storages location information"
-      useSearch={(query, limit, offset) =>
-        useSearchStorages(query, limit, offset)
-      }
+      useSearch={(q, l, o) => {
+        setQuery(q);
+        setLimit(l);
+        setOffset(o);
+        return useStorages(l, o, q);
+      }}
       renderItem={(storage) => <StorageCard key={storage.id} storage={storage} />}
-      noResultsText= "No storage found"
+      noResultsText="No storage found"
     />
-  )
-}
+  );
+};
+
+export default StoragesPage;

@@ -1,66 +1,88 @@
-// pages/KardsPage.tsx
-import { useState } from "react"
-import { SearchLayout } from "../components/layout/Search"
-import { KardCard } from "../components/items/KardCard"
-import { useSearchKards } from "../hooks/useKards"
-// import { gamesAPI, languagesAPI, packsAPI } from "../services/api"
+import React, { useState, useMemo } from 'react';
+import { SearchLayout } from '../components/layout/Search';
+import { KardCard } from '../components/items/KardCard';
+import { useKards, useGames, useLanguages, usePacks } from '../hooks/useKards';
 
-export const KardsPage = () => {
-  const [gameId] = useState(0)
-  const [languageId] = useState(0)
-  const [packId] = useState(0)
-  // const [games, setGames] = useState<{ id: number; name: string }[]>([])
-  // const [languages, setLanguages] = useState<{ id: number; name: string }[]>([])
-  // const [packs, setPacks] = useState<{ id: number; name: string }[]>([])
+/**
+ * Page component for browsing Kards.
+ */
+const KardsPage: React.FC = () => {
+  const [gameId, setGameId] = useState<number>(0);
+  const [languageId, setLanguageId] = useState<number>(0);
+  const [packId, setPackId] = useState<number>(0);
+  const [query, setQuery] = useState('');
+  const [limit, setLimit] = useState<number>(20);
+  const [offset, setOffset] = useState<number>(0);
 
-  // useEffect(() => {
-  //   gamesAPI.getGames(100, 0).then((res) =>
-  //     setGames([{ id: 0, name: "All Games" }, ...res.data])
-  //   )
-  //   languagesAPI.getLanguages(100, 0).then((res) =>
-  //     setLanguages([{ id: 0, name: "All Languages" }, ...res.data])
-  //   )
-  // }, [])
+  // Fetch filter metadata
+  const { data: gamesData } = useGames(100, 0);
+  const { data: languagesData } = useLanguages(100, 0);
+  const { data: packsData } = usePacks(100, 0);
 
-  // useEffect(() => {
-  //   packsAPI.searchPacks(gameId, languageId, "", 100, 0).then((res) =>
-  //     setPacks([{ id: 0, name: "All Packs" }, ...res.data])
-  //   )
-  //   // packsAPI.getPacks(100, 0).then((res) =>
-  //   //   setPacks([{ id: 0, name: "All Packs" }, ...res.data])
-  //   // )
-  // }, [gameId, languageId])
+  // Fetch Kards based on filters and search query
+  // We use a memoized queryKey or handle the reactive dependencies of useKards.
+  // Since useKards now takes all params, it will react to changes in these states.
+  const { data, isLoading, error, refetch } = useKards(
+    gameId,
+    languageId,
+    packId,
+    query,
+    limit,
+    offset
+  );
+
+  // Prepare filter options for SearchLayout
+  const filters = useMemo(() => {
+    const gameOptions = gamesData?.data?.map((g: any) => ({ id: g.id, name: g.name })) || [];
+    const languageOptions = languagesData?.data?.map((l: any) => ({ id: l.id, name: l.name })) || [];
+    const packOptions = packsData?.data?.map((p: any) => ({ id: p.id, name: p.name })) || [];
+
+    return [
+      {
+        label: 'Game',
+        value: gameId,
+        onChange: (val: number) => setGameId(val),
+        options: gameOptions,
+      },
+      {
+        label: 'Language',
+        value: languageId,
+        onChange: (val: number) => setLanguageId(val),
+        options: languageOptions,
+      },
+      {
+        label: 'Pack',
+        value: packId,
+        onChange: (val: number) => setPackId(val),
+        options: packOptions,
+      },
+    ];
+  }, [gameId, languageId, packId, gamesData, languagesData, packsData]);
+
+  const handleSearch = () => {
+    setOffset(0);
+    refetch();
+  };
 
   return (
     <SearchLayout
-      title="Card"
+      title="Kards"
       description="Browse our collection of cards"
-      useSearch={(query, limit, offset) =>
-        useSearchKards(gameId, languageId, packId, query, limit, offset)
-      }
+      useSearch={(q, l, o) => {
+        setQuery(q);
+        setLimit(l);
+        setOffset(o);
+        // This is tricky because useKards is already called at top level.
+        // SearchLayout calls useSearch which returns the query object.
+        // We need to make sure the params are updated correctly.
+        return useKards(gameId, languageId, packId, q, l, o);
+      }}
       renderItem={(kard) => <KardCard key={kard.id} kard={kard} />}
-      // filters={
-      //   [
-      //   {
-      //     label: "Game",
-      //     value: gameId,
-      //     onChange: (val) => setGameId(Number(val)),
-      //     options: games,
-      //   },
-      //   {
-      //     label: "Language",
-      //     value: languageId,
-      //     onChange: (val) => setLanguageId(Number(val)),
-      //     options: languages,
-      //   },
-      //   {
-      //     label: "Pack",
-      //     value: packId,
-      //     onChange: (val) => setPackId(Number(val)),
-      //     options: packs,
-      //   },
-      // ]}
-      noResultsText="No card found"
+      filters={filters}
+      itemsPerPage={limit}
+      noResultsText="No Kards found"
     />
-  )
-}
+  );
+};
+
+export default KardsPage;

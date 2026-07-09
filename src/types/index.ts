@@ -67,32 +67,32 @@ export interface CreateKardRequest {
 }
 
 export interface CardMatch {
-  name: string;
-  confidence: number; // JSON uses 'confidence', not 'confidence_score'
+  name: string
+  confidence: number
   detail: {
-    monster_effect: string | null;
-    pendulum_effect: string | null;
-    effect: string | null;
-  };
+    monster_effect: string | null
+    pendulum_effect: string | null
+    effect: string | null
+  }
 }
 
 export interface Media {
-  id: number;
-  url: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
+  id: number
+  url: string
+  status: string
+  created_at: string
+  updated_at: string
 }
 
 export interface MediaUploadResponse {
-  data: Media;
+  data: Media
   scan: {
     scan: {
-      success: boolean;
-      matches: CardMatch[];
-      processing_time: number;
-    };
-  };
+      success: boolean
+      matches: CardMatch[]
+      processing_time: number
+    }
+  }
 }
 
 export interface ProtectedKard {
