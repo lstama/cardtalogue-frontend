@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { SearchLayout } from '../components/layout/Search';
 import { GameCard } from '../components/items/GameCard';
 import { useGames } from '../hooks/useGames';
@@ -12,12 +12,7 @@ const GamesPage: React.FC = () => {
   const [offset, setOffset] = useState<number>(0);
 
   // Fetch games based on search query and pagination
-  const { data, isLoading, error, refetch } = useGames(limit, offset, query);
-
-  const handleSearch = () => {
-    setOffset(0);
-    refetch();
-  };
+  useGames(limit, offset, query);
 
   return (
     <SearchLayout

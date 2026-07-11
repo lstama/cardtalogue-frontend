@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { SearchLayout } from '../components/layout/Search';
 import { PackCard } from '../components/items/PackCard';
-import { usePacks, useGames, useLanguages } from '../hooks/usePacks';
+import { usePacks } from '../hooks/usePacks';
+import { useGames } from '../hooks/useGames';
 
 /**
  * Page component for browsing Kard Packs.
@@ -15,21 +16,14 @@ const PacksPage: React.FC = () => {
 
   // Fetch filter metadata
   const { data: gamesData } = useGames(100, 0);
-  const { data: languagesData } = useLanguages(100, 0);
 
   // Fetch Packs based on filters and search query
-  const { data, isLoading, error, refetch } = usePacks(
-    limit,
-    offset,
-    gameId,
-    languageId,
-    query
-  );
+  usePacks(limit, offset, gameId, languageId, query);
 
   // Prepare filter options for SearchLayout
   const filters = useMemo(() => {
     const gameOptions = gamesData?.data?.map((g: any) => ({ id: g.id, name: g.name })) || [];
-    const languageOptions = languagesData?.data?.map((l: any) => ({ id: l.id, name: l.name })) || [];
+    const languageOptions: Array<{ id: number; name: string }> = [];
 
     return [
       {
@@ -45,12 +39,7 @@ const PacksPage: React.FC = () => {
         options: languageOptions,
       },
     ];
-  }, [gameId, languageId, gamesData, languagesData]);
-
-  const handleSearch = () => {
-    setOffset(0);
-    refetch();
-  };
+  }, [gameId, languageId, gamesData]);
 
   return (
     <SearchLayout

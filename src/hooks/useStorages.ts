@@ -1,13 +1,18 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query'
 import { storagesAPI } from '../services/api'
 
 /**
  * Fetch a list of Storages.
  */
-export const useStorages = (limit: number = 20, offset: number = 0) => {
+export const useStorages = (limit: number = 20, offset: number = 0, query: string = '') => {
   return useQuery({
-    queryKey: ['storages', limit, offset],
-    queryFn: () => storagesAPI.getStorages(limit, offset),
+    queryKey: ['storages', query, limit, offset],
+    queryFn: () => {
+      if (query) {
+        return storagesAPI.searchStorages(query, limit, offset)
+      }
+      return storagesAPI.getStorages(limit, offset)
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }

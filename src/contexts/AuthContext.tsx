@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from 'react';
 import { authAPI, isTokenExpiringSoon } from '../services/api';
-import { User, LoginRequest, LoginResponse, ApiResponse } from '../types';
-import { useAuthLocalStorage } from './useAuthLocalStorage';
+import { User, LoginRequest } from '../types';
+import { getUserFromToken, useAuthLocalStorage } from '../hooks/useAuthLocalStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -13,7 +13,7 @@ interface AuthContextType {
 }
 
 interface AuthProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

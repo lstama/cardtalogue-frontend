@@ -22,6 +22,16 @@ export interface CreatePackRequest {
   language_id: number
 }
 
+export interface CartItem {
+  id: number
+  code: string
+  name: string
+  price: number
+  priceMultiplier: number
+  maxQuantity: number
+  quantity: number
+}
+
 export interface Kard {
   id: number
   code: string

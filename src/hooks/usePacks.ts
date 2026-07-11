@@ -4,10 +4,15 @@ import { packsAPI } from '../services/api'
 /**
  * Fetch a list of Packs.
  */
-export const usePacks = (limit: number = 20, offset: number = 0) => {
+export const usePacks = (limit: number = 20, offset: number = 0, gameId: number = 0, languageId: number = 0, query: string = '') => {
   return useQuery({
-    queryKey: ['packs', limit, offset],
-    queryFn: () => packsAPI.getPacks(limit, offset),
+    queryKey: ['packs', gameId, languageId, query, limit, offset],
+    queryFn: () => {
+      if (query || gameId || languageId) {
+        return packsAPI.searchPacks(gameId, languageId, query, limit, offset)
+      }
+      return packsAPI.getPacks(limit, offset)
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }
@@ -33,8 +38,6 @@ export const useSearchPacks = (
   limit: number = 20,
   offset: number = 0
 ) => {
-  const queryClient = useQueryClient()
-
   return useQuery({
     queryKey: ['packs/search', gameId, languageId, query, limit, offset],
     queryFn: () => packsAPI.searchPacks(gameId, languageId, query, limit, offset),

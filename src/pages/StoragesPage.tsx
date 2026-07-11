@@ -12,12 +12,7 @@ const StoragesPage: React.FC = () => {
   const [offset, setOffset] = useState<number>(0);
 
   // Fetch storages based on search query and pagination
-  const { data, isLoading, error, refetch } = useStorages(limit, offset, query);
-
-  const handleSearch = () => {
-    setOffset(0);
-    refetch();
-  };
+  useStorages(limit, offset, query);
 
   return (
     <SearchLayout

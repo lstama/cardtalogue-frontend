@@ -1,4 +1,4 @@
-import { useQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { kardsAPI, protectedKardsAPI } from '../services/api'
 import { CreateKardRequest } from '../types'
 

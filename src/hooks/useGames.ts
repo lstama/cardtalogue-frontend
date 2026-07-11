@@ -4,10 +4,15 @@ import { gamesAPI } from '../services/api'
 /**
  * Fetch a list of Games.
  */
-export const useGames = (limit: number = 20, offset: number = 0) => {
+export const useGames = (limit: number = 20, offset: number = 0, query: string = '') => {
   return useQuery({
-    queryKey: ['games', limit, offset],
-    queryFn: () => gamesAPI.getGames(limit, offset),
+    queryKey: ['games', query, limit, offset],
+    queryFn: () => {
+      if (query) {
+        return gamesAPI.searchGames(query, limit, offset)
+      }
+      return gamesAPI.getGames(limit, offset)
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }

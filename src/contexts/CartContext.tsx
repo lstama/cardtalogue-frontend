@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { CartItem } from '../types';
 import { useCartLocalStorage } from '../hooks/useCartLocalStorage';
 

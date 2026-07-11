@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '../components/ui/Button';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
-import { CartItem } from '../contexts/CartContext';
+import { CartItem } from '../types';
 import { protectedKardsAPI, storagesAPI } from '../services/api';
 
 /**

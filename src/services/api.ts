@@ -168,15 +168,19 @@ export const packsAPI = {
     })
     return data
   },
+  getPack: async (id: number): Promise<ApiResponse<Pack>> => {
+    const { data } = await publicApiClient.get('/packs/' + id)
+    return data
+  },
   searchPacks: async (game_id: number = 0, language_id: number = 0, query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Pack[]>> => {
     const { data } = await publicApiClient.get('/packs/search', {
       params: { game_id, language_id, query, limit, offset }
     })
     return data
   },
-  createPack: async (data: CreatePackRequest) => {
-    const { data } = await privateApiClient.post('/packs', data)
-    return data
+  createPack: async (payload: CreatePackRequest) => {
+    const response = await privateApiClient.post('/packs', payload)
+    return response.data
   },
 }
 
@@ -200,13 +204,13 @@ export const kardsAPI = {
     })
     return data
   },
-  createKard: async (data: CreateKardRequest) => {
-    const { data } = await privateApiClient.post('/cards', data)
-    return data
+  createKard: async (payload: CreateKardRequest) => {
+    const response = await privateApiClient.post('/cards', payload)
+    return response.data
   },
-  updateKard: async (id: number, data: CreateKardRequest) => {
-    const { data } = await privateApiClient.put('/cards/' + id, data)
-    return data
+  updateKard: async (id: number, payload: CreateKardRequest) => {
+    const response = await privateApiClient.put('/cards/' + id, payload)
+    return response.data
   },
 }
 
@@ -224,9 +228,9 @@ export const protectedKardsAPI = {
     const { data } = await privateApiClient.get('/cards/protected/' + id)
     return data
   },
-  updateKard: async (id: number, data: CreateKardRequest) => {
-    const { data } = await privateApiClient.put('/cards/protected/' + id, data)
-    return data
+  updateKard: async (id: number, payload: CreateKardRequest) => {
+    const response = await privateApiClient.put('/cards/protected/' + id, payload)
+    return response.data
   },
 }
 
@@ -298,9 +302,9 @@ export const storagesAPI = {
     })
     return data
   },
-  createStorage: async (data: { code: string; name: string; description: string }): Promise<ApiResponse<Storage>> => {
-    const { data } = await privateApiClient.post('/storages', data)
-    return data
+  createStorage: async (payload: { code: string; name: string; description: string }) => {
+    const response = await privateApiClient.post('/storages', payload)
+    return response.data
   }
 }
 

@@ -1,20 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Layout } from './components/layout/Layout'
-import { KardsPage } from './pages/KardsPage'
-// import { PacksPage } from './pages/PacksPage'
-// import { GamesPage } from './pages/GamesPage'
-import { CartPage } from './pages/CartPage'
-import { StoragesPage } from './pages/StoragesPage'
-import { UpdateStockPage } from "./pages/UpdateStockPage"
+import Layout from './components/layout/Layout'
+import KardsPage from './pages/KardsPage'
+// import PacksPage from './pages/PacksPage'
+// import GamesPage from './pages/GamesPage'
+import CartPage from './pages/CartPage'
+import StoragesPage from './pages/StoragesPage'
+import UpdateStockPage from './pages/UpdateStockPage'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
-import { CartProvider } from "./contexts/CartContext"
-import { CreatePackPage } from './pages/CreatePackPage'
-import { CreateKardPage } from './pages/CreateKardPage'
-// import { ScannerPage } from './pages/ScannerPage'
+import { CartProvider } from './contexts/CartContext'
+import CreatePackPage from './pages/CreatePackPage'
+import CreateKardPage from './pages/CreateKardPage'
+// import ScannerPage from './pages/ScannerPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {

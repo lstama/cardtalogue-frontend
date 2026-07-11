@@ -12,7 +12,7 @@ const ScannerPage: React.FC = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [cardData, setCardData] = useState({
+  const [cardData, setCardData] = useState<{ name: string; set: string; number: string }>({
     name: '',
     set: '',
     number: '',
@@ -29,13 +29,14 @@ const ScannerPage: React.FC = () => {
       const response = await mediaAPIScan.uploadImage(file);
       const mediaId = response.data?.id;
       const matches = response.scan?.scan?.matches || [];
+      void mediaId;
 
       if (matches.length > 0) {
         const bestMatch = matches[0];
         setCardData({
           name: bestMatch.name || '',
-          set: bestMatch.set || '',
-          number: bestMatch.number || '',
+          set: '',
+          number: '',
         });
         
         // If we want to use the mediaId, we'd need to include it in the form state
