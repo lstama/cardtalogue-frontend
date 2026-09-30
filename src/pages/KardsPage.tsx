@@ -3,9 +3,11 @@ import { useState } from "react"
 import { SearchLayout } from "../components/layout/Search"
 import { KardCard } from "../components/items/KardCard"
 import { useSearchKards } from "../hooks/useKards"
+import { useSearchParams } from "react-router-dom"
 // import { gamesAPI, languagesAPI, packsAPI } from "../services/api"
 
 export const KardsPage = () => {
+  const [searchParams] = useSearchParams()
   const [gameId] = useState(0)
   const [languageId] = useState(0)
   const [packId] = useState(0)
@@ -61,6 +63,7 @@ export const KardsPage = () => {
       //   },
       // ]}
       noResultsText="No card found"
+      initialQuery={searchParams.get("q") ?? ""}
     />
   )
 }

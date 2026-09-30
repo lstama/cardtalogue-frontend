@@ -203,22 +203,35 @@ export const CreateKardPage = () => {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4 mt-7">
+    <div className="mx-auto mt-7 max-w-5xl p-4">
       <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
         {isEditMode ? 'Edit Card' : 'Add Card'}
       </h1>
 
-      {/* Camera/Scanner UI */}
-      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-        <button
-          type="button"
-          onClick={() => setIsCameraOpen(true)}
-          disabled={isUploading}
-          className="w-full px-4 py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
-        >
-          {isUploading ? <><LoadingSpinner size="sm" /> Scanning...</> : "📸 Scan Card for Autofill"}
-        </button>
-      </div>
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
+        <div>
+          {/* Camera/Scanner UI */}
+          <button
+            type="button"
+            onClick={() => setIsCameraOpen(true)}
+            disabled={isUploading}
+            aria-label={previewUrl ? 'Retake card photo for autofill' : 'Open camera to scan card for autofill'}
+            className="group relative mx-auto mb-6 flex aspect-[2.4/3.4] w-full max-w-xs items-center justify-center overflow-hidden rounded-lg border border-gray-300 bg-gray-100 text-center transition hover:border-blue-600 hover:ring-2 hover:ring-blue-600/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50 disabled:cursor-wait dark:border-gray-600 dark:bg-gray-800"
+          >
+            {previewUrl ? (
+              <>
+                <img src={previewUrl} alt="" onError={() => setPreviewUrl(null)} className="absolute inset-0 h-full w-full object-contain transition group-hover:scale-[1.02]" />
+                <span className="absolute inset-0 bg-gray-950/40 transition group-hover:bg-gray-950/50" />
+                <span className="relative flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-bold text-gray-900 shadow-lg transition group-hover:bg-blue-600 group-hover:text-white">
+                  {isUploading ? <><LoadingSpinner size="sm" /> Scanning...</> : 'Retake photo'}
+                </span>
+              </>
+            ) : (
+              <span className="rounded-md bg-blue-700 px-5 py-3 text-sm font-bold text-white shadow-lg transition group-hover:bg-blue-800">
+                {isUploading ? <><LoadingSpinner size="sm" /> Scanning...</> : 'Scan card for autofill'}
+              </span>
+            )}
+          </button>
 
       {/* Match Selector Modal (Integrated inside the flow) */}
       {showMatchSelector && cardMatches.length > 0 && (
@@ -249,8 +262,9 @@ export const CreateKardPage = () => {
           </button>
         </div>
       )}
+        </div>
 
-      <div className="space-y-1">
+        <div className="space-y-1">
         <h5 className='text-sm dark:text-gray-100 font-semibold'>Code</h5>
         <input
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 uppercase"
@@ -384,17 +398,6 @@ export const CreateKardPage = () => {
           </button>
         </div>
 
-        {previewUrl && (
-          <div className="mt-2 flex justify-center">
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="max-h-64 border-4 rounded-lg border-gray-300 dark:border-gray-700 shadow-md"
-              onError={() => setPreviewUrl(null)}
-            />
-          </div>
-        )}
-
         <h5 className='text-sm dark:text-gray-100 font-semibold'>Description</h5>
         <textarea
           className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
@@ -511,6 +514,7 @@ export const CreateKardPage = () => {
         >
           {createKard.isPending || updateKard.isPending ? <LoadingSpinner size="sm" /> : isEditMode ? 'Update Card' : 'Submit Card'}
         </button>
+        </div>
       </div>
 
       {/* Modals */}

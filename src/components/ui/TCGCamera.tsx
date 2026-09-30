@@ -5,13 +5,17 @@ export const processImage = (
   base64Str: string,
   crop: { x: number; y: number; width: number; height: number },
   targetWidth = 420
-): Promise<{ file: File }> => {
-  return new Promise((resolve) => {
+): Promise<{ file: File; preview: string }> => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Unable to process the captured image.'));
+        return;
+      }
       
       // Calculate target height for the 2.4:3.4 ratio
       const targetHeight = Math.round(targetWidth * (3.4 / 2.4));
@@ -19,19 +23,23 @@ export const processImage = (
       canvas.height = targetHeight;
 
       // Draw exactly from the calculated source coordinates to the full canvas
-      ctx?.drawImage(
+      ctx.drawImage(
         img,
         crop.x, crop.y, crop.width, crop.height, // Source
         0, 0, targetWidth, targetHeight         // Destination
       );
 
+      const preview = canvas.toDataURL('image/jpeg', 0.9);
       canvas.toBlob((blob) => {
         if (blob) {
           const file = new File([blob], "scan.jpg", { type: "image/jpeg" });
-          resolve({ file });
+          resolve({ file, preview });
+        } else {
+          reject(new Error('Unable to encode the captured image.'));
         }
       }, "image/jpeg", 0.9);
     };
+    img.onerror = () => reject(new Error('Unable to load the captured image.'));
   });
 };
 
@@ -40,6 +48,7 @@ const TCGCameraModal: React.FC<{ onProcessed: (f: File, p: string) => void; onCl
   const [warning, setWarning] = useState<string | null>(null);
 
   const handleCapture = async () => {
+    try {
     const video = webcamRef.current?.video;
     const imageSrc = webcamRef.current?.getScreenshot();
 
@@ -83,8 +92,13 @@ const TCGCameraModal: React.FC<{ onProcessed: (f: File, p: string) => void; onCl
         height: Math.round(cropHeight)
       };
 
-      const { file } = await processImage(imageSrc, cropParams);
-      onProcessed(file, imageSrc);
+      const { file, preview } = await processImage(imageSrc, cropParams);
+      onProcessed(file, preview);
+    } else {
+      setWarning('Camera is not ready. Try again.');
+    }
+    } catch {
+      setWarning('Unable to process this capture. Try again.');
     }
   };
 

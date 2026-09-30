@@ -14,7 +14,8 @@ import {
   LoginResponse,
   RefreshRequest,
   RefreshResponse,
-  MediaUploadResponse
+  MediaUploadResponse,
+  MediaScanResponse
 } from '../types'
 import { API_BASE_URL } from '../config/api'
 
@@ -194,7 +195,7 @@ export const kardsAPI = {
     return response.data
   },
   searchKards: async (game_id: number = 0, language_id: number = 0, pack_id: number = 0, query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Kard[]>> => {
-    const response = await privateApiClient.get('/cards/search', {
+    const response = await publicApiClient.get('/cards/search', {
       params: { game_id: game_id, language_id: language_id, pack_id: pack_id, query: query, limit, offset }
     })
     return response.data
@@ -305,10 +306,17 @@ export const mediaAPIScan = {
   uploadImage: async (file: File): Promise<any> => { // Using any here because of the nested scan object
     const formData = new FormData()
     formData.append('file', file) 
-    
+
     const response = await privateApiClient.post('/media/upload?also_scan=true', formData)
-    
-    // FIX: Return the root response.data so we don't lose the "scan" property
-    return response.data 
+    return response.data
+  },
+  scanImage: async (file: File, capToken: string): Promise<MediaScanResponse> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await publicApiClient.post('/media/scan', formData, {
+      headers: { 'X-Cap-Token': capToken }
+    })
+    return response.data
   }
 }

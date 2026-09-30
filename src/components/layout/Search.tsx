@@ -27,6 +27,7 @@ type SearchLayoutProps<T> = {
   filters?: Filter[]
   itemsPerPage?: number
   noResultsText?: string
+  initialQuery?: string
 }
 
 export function SearchLayout<T>({
@@ -37,9 +38,10 @@ export function SearchLayout<T>({
   filters = [],
   itemsPerPage = 20,
   noResultsText = "No results found",
+  initialQuery = "",
 }: SearchLayoutProps<T>) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState(initialQuery)
 
   const offset = (currentPage - 1) * itemsPerPage
   const { data, isLoading, error, refetch, isFetching } = useSearch(

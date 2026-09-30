@@ -14,7 +14,7 @@ import LoginPage from './pages/LoginPage'
 import { CartProvider } from "./contexts/CartContext"
 import { CreatePackPage } from './pages/CreatePackPage'
 import { CreateKardPage } from './pages/CreateKardPage'
-// import { ScannerPage } from './pages/ScannerPage'
+import { ScannerPage } from './pages/ScannerPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,12 +39,12 @@ function App() {
                   {/* <Route path="/games" element={<GamesPage />} /> */}
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/cart" element={<CartPage />} />
+                  <Route path="/scan" element={<ScannerPage />} />
                   <Route path="/stock-update" element={
                     <ProtectedRoute>
                       <UpdateStockPage />
                     </ProtectedRoute>
                   } />
-                  {/* <Route path="/scanner" element={<ScannerPage />} /> */}
                   <Route path="/storages" element={
                     <ProtectedRoute>
                       <StoragesPage />

@@ -74,6 +74,14 @@ export interface CardMatch {
     pendulum_effect: string | null;
     effect: string | null;
   };
+  konami_id?: string;
+}
+
+export interface MediaScanResponse {
+  data: {
+    success: boolean;
+    matches: CardMatch[];
+  };
 }
 
 export interface Media {
