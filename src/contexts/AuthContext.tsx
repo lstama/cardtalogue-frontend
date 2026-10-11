@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { authAPI, isTokenExpiringSoon } from '../services/api'; // Import your existing API
-import { User, LoginRequest, LoginResponse, ApiResponse } from '../types'; // Import your existing types
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { authAPI, isTokenExpiringSoon } from '../services/api' // Import your existing API
+import { User, LoginRequest, LoginResponse, ApiResponse } from '../types' // Import your existing types
 
 interface AuthContextType {
   user: User | null;
@@ -9,10 +9,6 @@ interface AuthContextType {
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => void;
   refreshToken: () => Promise<string | null>;
-}
-
-interface AuthProviderProps {
-  children: ReactNode;
 }
 
 // Create context
@@ -40,7 +36,7 @@ const getUserFromToken = (token: string | null): User | null => {
 };
 
 // Auth Provider Component
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -73,9 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
-      console.log('Attempting login...');
-      
-      const response: ApiResponse<LoginResponse> = await authAPI.login(credentials);
+      const response: ApiResponse<LoginResponse> = await authAPI.login(credentials)
       const login_response: LoginResponse = response.data
       const { user: userData, access_token, refresh_token } = login_response;
 
@@ -84,11 +78,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('refreshToken', refresh_token);
 
       // Set user
-      setUser(userData);
-
-      console.log('Login successful:', userData.email);
+      setUser(userData)
     } catch (error: any) {
-      console.error('Login failed:', error);
+      console.error('Login failed:', error)
       clearAuth();
       throw new Error(error.response?.data?.error || 'Login failed');
     } finally {
@@ -99,10 +91,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Logout function
   const logout = useCallback(async () => {
     try {
-      console.log('Logging out...');
-      await authAPI.logout();
+      await authAPI.logout()
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      console.error('Logout API call failed:', error)
     } finally {
       clearAuth();
       // Redirect to home page
@@ -113,16 +104,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize auth state from localStorage
   useEffect(() => {
     const initAuth = () => {
-      console.log('Initializing auth state...');
-      
-      const token = localStorage.getItem('accessToken');
-      
+      const token = localStorage.getItem('accessToken')
+
       if (token) {
         // Get user from token (regardless of expiry - interceptor will handle refresh)
         const userData = getUserFromToken(token);
         if (userData) {
-          setUser(userData);
-          console.log('Auth initialized from token:', userData.email);
+          setUser(userData)
         } else {
           clearAuth();
         }
@@ -143,14 +131,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (e.key === 'accessToken') {
         if (e.newValue === null) {
           // Access token was removed
-          console.log('Access token removed, logging out...');
-          setUser(null);
+          setUser(null)
         } else if (e.newValue) {
           // Access token was updated (by interceptor or another tab)
-          const newUser = getUserFromToken(e.newValue);
+          const newUser = getUserFromToken(e.newValue)
           if (newUser && (!user || user.id !== newUser.id)) {
-            console.log('Access token updated, syncing user...');
-            setUser(newUser);
+            setUser(newUser)
           }
         }
       }

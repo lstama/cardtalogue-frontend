@@ -6,7 +6,7 @@ import type { CardMatch } from '../types'
 
 const CAP_API_ENDPOINT = 'https://cap.tama.id/b486d0c417/'
 
-export const ScannerPage: React.FC = () => {
+export const ScannerPage = () => {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [matches, setMatches] = useState<CardMatch[]>([])

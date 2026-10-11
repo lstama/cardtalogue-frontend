@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useClickOutside } from "../../hooks/useClickOutside"
+import { useState } from 'react'
+import { useClickOutside } from '../../hooks/useClickOutside'
 
 type FilterOption = {
   id: number
@@ -70,7 +70,6 @@ export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBar
               </button>
 
               {openDropdown === idx && (
-                // <div ref={closeClickOutside}>
                 <div className="absolute z-10 mt-1 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
                   <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
                     {filter.options.map((opt) => (
@@ -89,7 +88,6 @@ export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBar
                     ))}
                   </ul>
                 </div>
-                // </div>
               )}
             </div>
           )
