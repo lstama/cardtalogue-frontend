@@ -59,7 +59,7 @@ export const authAPI = {
   },
 }
 
-const storeTokens = (accessToken: string, refreshToken?: string) => {
+const storeTokens = (accessToken: string, refreshToken?: string | null) => {
   localStorage.setItem('accessToken', accessToken)
   if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
 }
@@ -153,7 +153,7 @@ export const packsAPI = {
     query: string,
     limit: number = 10,
     offset: number = 0,
-  ): Promise<ApiResponse<Pack[]]> =>
+  ): Promise<ApiResponse<Pack[]>> =>
     searchList(publicApiClient, '/packs/search', { game_id, language_id, query, limit, offset }),
   createPack: async (data: CreatePackRequest) => create(privateApiClient, '/packs', data),
 }
@@ -170,7 +170,7 @@ export const kardsAPI = {
     query: string,
     limit: number = 10,
     offset: number = 0,
-  ): Promise<ApiResponse<Kard[]]> =>
+  ): Promise<ApiResponse<Kard[]>> =>
     searchList(publicApiClient, '/cards/search', { game_id, language_id, pack_id, query, limit, offset }),
   createKard: async (data: CreateKardRequest) => create(privateApiClient, '/cards', data),
   updateKard: async (id: number, data: CreateKardRequest) =>

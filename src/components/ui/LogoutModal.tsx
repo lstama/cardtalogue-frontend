@@ -1,6 +1,11 @@
 // Confirmation modal shown when the user asks to log out.
 // The caller owns the visibility state and the side effects (cancel / logout).
-export const LogoutModal = ({ onCancel, onConfirm }) => (
+type LogoutModalProps = {
+  onCancel: () => void
+  onConfirm: () => void
+}
+
+export const LogoutModal = ({ onCancel, onConfirm }: LogoutModalProps) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[150]">
     <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg max-w-sm w-full">
       <h2 className="text-lg font-bold mb-4 dark:text-gray-200">Confirm Logout</h2>

@@ -34,7 +34,7 @@ export default function Navbar() {
   }
   const closeClickOutside = useClickOutside(closeAllDropdown)
 
-  const navClass = ({ isActive }) => (isActive ? NAV_ACTIVE : NAV_IDLE)
+  const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? NAV_ACTIVE : NAV_IDLE)
   const navLink = (to: string, label: string) => (
     <NavLink to={to} onClick={closeAllDropdown} className={navClass}>
       {label}

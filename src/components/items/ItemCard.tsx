@@ -1,7 +1,9 @@
 import { Card, CardContent } from '../ui/Card'
 import { StaticTag } from '../ui/StaticTag'
 
-const TAG_COLORS = ['green', 'blue', 'red']
+type TagColor = 'blue' | 'green' | 'red' | 'yellow' | 'purple'
+
+const TAG_COLORS: TagColor[] = ['green', 'blue', 'red']
 
 // Shared shell for the "item" cards (games, packs, storages).
 // Everything optional is skipped, so each item type only passes what it has.

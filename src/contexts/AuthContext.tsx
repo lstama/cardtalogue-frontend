@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import type { ReactNode } from 'react'
 import { authAPI, isTokenExpiringSoon } from '../services/api' // Import your existing API
 import { User, LoginRequest, LoginResponse, ApiResponse } from '../types' // Import your existing types
 
@@ -36,7 +37,7 @@ const getUserFromToken = (token: string | null): User | null => {
 };
 
 // Auth Provider Component
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

@@ -12,7 +12,7 @@ export const SearchableSelect = ({
   label: string
   value: number
   options: { id: number; name: string }[]
-  onChange: (id: number) => void
+  onChange: (id: number | string) => void
   onSearchQueryChange: (query: string) => void
 }) => Dropdown({
   label,
