@@ -1,238 +1,349 @@
-import axios from 'axios'
-import {
+import createClient from 'openapi-fetch'
+import type { paths, components } from '@contract/backend'
+import { API_BASE_URL } from '../config/api'
+import type {
   ApiResponse,
   Kard,
-  CreateKardRequest,
-  ProtectedKard,
-  Pack,
-  CreatePackRequest,
   Game,
+  LoginRequest,
+  MediaScanResponse,
+  Pack,
+  Storage,
   Language,
   Rarity,
-  Storage,
-  LoginRequest,
-  LoginResponse,
-  RefreshRequest,
-  RefreshResponse,
+  CreatePackRequest,
+  CreateKardRequest,
+  ProtectedKard,
   MediaUploadResponse,
-  MediaScanResponse,
+  LoginResponse,
+  RefreshResponse,
 } from '../types'
-import { API_BASE_URL } from '../config/api'
 
-const REQUEST_TIMEOUT_MS = 1_000_000
-const REFRESH_WINDOW_MS = 5 * 60 * 1000
+// ---------------------------------------------------------------------------
+// Auth token helpers (JWT, localStorage)
+// ---------------------------------------------------------------------------
 
-// Separate axios instances keep separate cookie jars, so auth cookies set by one
-// group do not leak into another (and interceptors cannot re-trigger themselves).
-const createClient = () =>
-  axios.create({
-    baseURL: API_BASE_URL,
-    timeout: REQUEST_TIMEOUT_MS,
-    withCredentials: true,
-  })
+// Refresh proactively when fewer than this many seconds remain on the access token.
+const TOKEN_EXPIRY_THRESHOLD_MS = 5 * 60 * 1000
 
-const publicApiClient = createClient()
-const privateApiClient = createClient()
-const authApiClient = createClient()
-
-type Client = typeof publicApiClient
-
-export const isTokenExpiringSoon = (token: string | null) => {
-  if (!token) return true
-
+function decodeJwtExpiry(token: string): number | null {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.exp * 1000 - Date.now() < REFRESH_WINDOW_MS
+    const payload = token.split('.')[1]
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    const decoded = JSON.parse(json)
+    return typeof decoded.exp === 'number' ? decoded.exp : null
   } catch {
-    return true // If it can't be parsed, assume expired
+    return null
   }
 }
 
-export const authAPI = {
-  login: async (payload: LoginRequest): Promise<ApiResponse<LoginResponse>> =>
-    (await authApiClient.post('/auth/login', payload)).data,
-  refresh: async (payload: RefreshRequest): Promise<ApiResponse<RefreshResponse>> =>
-    (await authApiClient.post('/auth/refresh', payload)).data,
-  logout: async (): Promise<void> => {
-    // If the backend doesn't provide a logout endpoint, ignore and clear cookies client-side
-    await authApiClient.post('/auth/logout').catch(() => {})
-  },
+export function isTokenExpiringSoon(token: string): boolean {
+  const exp = decodeJwtExpiry(token)
+  if (exp === null) return false
+  return exp * 1000 - Date.now() < TOKEN_EXPIRY_THRESHOLD_MS
 }
 
-const storeTokens = (accessToken: string, refreshToken?: string | null) => {
-  localStorage.setItem('accessToken', accessToken)
-  if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
-}
-
-const clearTokensAndGoToLogin = () => {
+function clearTokens(): void {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')
-  window.location.href = '/login'
-}
-
-// Shared by both interceptors: exchange the stored refresh token for a fresh access token.
-const refreshAccessToken = async (reason: string): Promise<string> => {
-  const refreshToken = localStorage.getItem('refreshToken')
-  if (!refreshToken) throw new Error(`No refresh token available (${reason})`)
-
-  const apiResponse = await authAPI.refresh({ refresh_token: refreshToken })
-  const data: RefreshResponse = apiResponse.data
-  if (!data.access_token) throw new Error('No access token in refresh response')
-
-  storeTokens(data.access_token, data.refresh_token)
-  return data.access_token
-}
-
-privateApiClient.interceptors.request.use(async (config) => {
-  try {
-    const token = localStorage.getItem('accessToken')
-    if (!token) return config
-
-    const effective = isTokenExpiringSoon(token) ? await refreshAccessToken('request') : token
-    config.headers = config.headers || {}
-    config.headers.Authorization = `Bearer ${effective}`
-    return config
-  } catch (error) {
-    console.error('Token refresh failed:', error)
-    clearTokensAndGoToLogin()
-    return Promise.reject(error)
+  localStorage.removeItem('user')
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
   }
-})
+}
 
-// Response interceptor for handling unexpected 401s
-privateApiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config
+// Refresh lock: only one refresh in flight at a time (mirrors the previous
+// axios interceptor queue so concurrent requests share a single refresh).
+let refreshing: Promise<string> | null = null
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
+function refreshAccessToken(): Promise<string> {
+  if (!refreshing) {
+    refreshing = (async () => {
+      const refreshToken = localStorage.getItem('refreshToken')
+      if (!refreshToken) {
+        clearTokens()
+        throw new Error('No refresh token available')
+      }
+      const resp = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      })
+      if (!resp.ok) {
+        throw new Error('Token refresh failed')
+      }
+      const json = (await resp.json()) as { data?: { access_token?: string; refresh_token?: string } }
+      const token = json.data?.access_token
+      if (!token) {
+        throw new Error('No access token in refresh response')
+      }
+      localStorage.setItem('accessToken', token)
+      if (json.data?.refresh_token) {
+        localStorage.setItem('refreshToken', json.data.refresh_token)
+      }
+      return token
+    })()
+    refreshing.finally(() => {
+      refreshing = null
+    })
+  }
+  return refreshing
+}
 
+// ---------------------------------------------------------------------------
+// openapi-fetch client with auth + 401-retry loader
+// ---------------------------------------------------------------------------
+
+const client = createClient<paths>({
+  baseUrl: API_BASE_URL,
+  fetch: async (req: Request): Promise<Response> => {
+    // Add the auth header; proactively refresh if the token is about to expire.
+    let token = localStorage.getItem('accessToken')
+    if (token && isTokenExpiringSoon(token)) {
+      token = await refreshAccessToken()
+    }
+    if (token) {
+      req.headers.set('Authorization', `Bearer ${token}`)
+    }
+
+    // Clone before consuming the body so a 401 retry can re-send the request.
+    const retryReq = req.clone()
+
+    let res = await fetch(req)
+
+    // On 401, refresh once and retry (guarded so we never loop).
+    if (res.status === 401 && retryReq.headers.get('x-retry') !== 'true') {
       try {
-        const accessToken = await refreshAccessToken('401 retry')
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`
-        return axios.request(originalRequest)
-      } catch (refreshError) {
-        clearTokensAndGoToLogin()
-        return Promise.reject(refreshError)
+        const newToken = await refreshAccessToken()
+        retryReq.headers.set('Authorization', `Bearer ${newToken}`)
+        retryReq.headers.set('x-retry', 'true')
+        res = await fetch(retryReq)
+      } catch {
+        clearTokens()
       }
     }
 
-    return Promise.reject(error)
+    return res
   },
-)
+})
 
-// --- request helpers (every group below is the same shape: verb + path + params) ---
+// ---------------------------------------------------------------------------
+// Response helpers
+// ---------------------------------------------------------------------------
 
-const getList = async (client: Client, path: string, limit: number, offset: number) =>
-  (await client.get(path, { params: { limit, offset } })).data
-
-const getOne = async (client: Client, path: string) => (await client.get(path)).data
-
-const searchList = async (client: Client, path: string, params: Record<string, number | string>) =>
-  (await client.get(path, { params })).data
-
-const create = async (client: Client, path: string, body: unknown) =>
-  (await client.post(path, body)).data
-
-const update = async (client: Client, path: string, body: unknown) =>
-  (await client.put(path, body)).data
-
-const uploadMedia = async (client: Client, path: string, file: File) => {
-  const formData = new FormData()
-  formData.append('file', file) // 'file' matches the backend field name
-  return (await client.post(path, formData)).data
+function requireData<T>(result: { data?: unknown; error?: unknown; response?: Response }): T {
+  const { data, error, response } = result
+  if (error || data === undefined) {
+    throw new Error(response?.statusText || 'Request failed')
+  }
+  return data as T
 }
 
-export const packsAPI = {
-  getPacks: async (limit: number = 20, offset: number = 0): Promise<ApiResponse<Pack[]>> =>
-    getList(publicApiClient, '/packs', limit, offset),
-  searchPacks: async (
-    game_id: number = 0,
-    language_id: number = 0,
-    query: string,
-    limit: number = 10,
-    offset: number = 0,
-  ): Promise<ApiResponse<Pack[]>> =>
-    searchList(publicApiClient, '/packs/search', { game_id, language_id, query, limit, offset }),
-  createPack: async (data: CreatePackRequest) => create(privateApiClient, '/packs', data),
-}
-
-export const kardsAPI = {
-  getKards: async (limit: number = 20, offset: number = 0): Promise<ApiResponse<Kard[]>> =>
-    getList(publicApiClient, '/cards', limit, offset),
-  getKard: async (id: number = 1): Promise<ApiResponse<Kard>> =>
-    getOne(publicApiClient, `/cards/${id}`),
-  searchKards: async (
-    game_id: number = 0,
-    language_id: number = 0,
-    pack_id: number = 0,
-    query: string,
-    limit: number = 10,
-    offset: number = 0,
-  ): Promise<ApiResponse<Kard[]>> =>
-    searchList(publicApiClient, '/cards/search', { game_id, language_id, pack_id, query, limit, offset }),
-  createKard: async (data: CreateKardRequest) => create(privateApiClient, '/cards', data),
-  updateKard: async (id: number, data: CreateKardRequest) =>
-    update(privateApiClient, `/cards/${id}`, data),
-}
-
-export const protectedKardsAPI = {
-  getKards: async (limit: number = 20, offset: number = 0): Promise<ApiResponse<ProtectedKard[]>> =>
-    getList(privateApiClient, '/cards/protected', limit, offset),
-
-  // TODO: search
-  getKard: async (id: number = 1): Promise<ApiResponse<ProtectedKard>> =>
-    getOne(privateApiClient, `/cards/protected/${id}`),
-  updateKard: async (id: number, data: CreateKardRequest) =>
-    update(privateApiClient, `/cards/protected/${id}`, data),
-}
+// ---------------------------------------------------------------------------
+// Games
+// ---------------------------------------------------------------------------
 
 export const gamesAPI = {
-  getGames: async (limit: number = 20, offset: number = 0): Promise<ApiResponse<Game[]>> =>
-    getList(publicApiClient, '/games', limit, offset),
-  searchGames: async (query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Game[]>> =>
-    searchList(publicApiClient, '/games/search', { query, limit, offset }),
-}
-
-export const languagesAPI = {
-  getLanguages: async (limit: number = 20, offset: number = 0): Promise<ApiResponse<Language[]>> =>
-    getList(publicApiClient, '/languages', limit, offset),
-  searchLanguages: async (query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Language[]>> =>
-    searchList(publicApiClient, '/languages/search', { query, limit, offset }),
-}
-
-export const raritiesAPI = {
-  getRarities: async (limit: number = 20, offset: number = 0): Promise<ApiResponse<Rarity[]>> =>
-    getList(publicApiClient, '/rarities', limit, offset),
-}
-
-export const storagesAPI = {
-  getStorages: async (limit: number = 20, offset: number = 0): Promise<ApiResponse<Storage[]>> =>
-    getList(privateApiClient, '/storages', limit, offset),
-  getStorage: async (id: number): Promise<ApiResponse<Storage>> =>
-    getOne(privateApiClient, `/storages/${id}`),
-  searchStorages: async (query: string, limit: number = 10, offset: number = 0): Promise<ApiResponse<Storage[]>> =>
-    searchList(privateApiClient, '/storages/search', { query, limit, offset }),
-  createStorage: async (data: { code: string; name: string; description: string }): Promise<ApiResponse<Storage>> =>
-    create(privateApiClient, '/storages', data),
-}
-
-export const mediaAPI = {
-  uploadImage: async (file: File): Promise<MediaUploadResponse> => {
-    const data = await uploadMedia(privateApiClient, '/media/upload', file)
-    return data.data
+  getGames(limit: number, offset: number): Promise<ApiResponse<Game[]>> {
+    return client
+      .GET('/games', { params: { query: { limit, offset } } })
+      .then((res) => requireData<ApiResponse<Game[]>>(res))
+  },
+  searchGames(query: string, limit: number, offset: number): Promise<ApiResponse<Game[]>> {
+    return client
+      .GET('/games/search', { params: { query: { query, limit, offset } } })
+      .then((res) => requireData<ApiResponse<Game[]>>(res))
   },
 }
 
-export const mediaAPIScan = {
-  uploadImage: async (file: File) =>
-    uploadMedia(privateApiClient, '/media/upload?also_scan=true', file), // full body: nested scan object
-  scanImage: async (file: File, capToken: string): Promise<MediaScanResponse> => {
+// ---------------------------------------------------------------------------
+// Languages
+// ---------------------------------------------------------------------------
+
+export const languagesAPI = {
+  getLanguages(limit: number, offset: number): Promise<ApiResponse<Language[]>> {
+    return client
+      .GET('/languages', { params: { query: { limit, offset } } })
+      .then((res) => requireData<ApiResponse<Language[]>>(res))
+  },
+  searchLanguages(query: string, limit: number, offset: number): Promise<ApiResponse<Language[]>> {
+    return client
+      .GET('/languages/search', { params: { query: { query, limit, offset } } })
+      .then((res) => requireData<ApiResponse<Language[]>>(res))
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Rarities
+// ---------------------------------------------------------------------------
+
+export const raritiesAPI = {
+  getRarities(limit: number, offset: number): Promise<ApiResponse<Rarity[]>> {
+    return client
+      .GET('/rarities', { params: { query: { limit, offset } } })
+      .then((res) => requireData<ApiResponse<Rarity[]>>(res))
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Packs
+// ---------------------------------------------------------------------------
+
+export const packsAPI = {
+  getPacks(limit: number, offset: number): Promise<ApiResponse<Pack[]>> {
+    return client
+      .GET('/packs', { params: { query: { limit, offset } } })
+      .then((res) => requireData<ApiResponse<Pack[]>>(res))
+  },
+  searchPacks(game_id: number, language_id: number, query: string, limit: number, offset: number): Promise<ApiResponse<Pack[]>> {
+    return client
+      .GET('/packs/search', { params: { query: { game_id, language_id, query, limit, offset } } })
+      .then((res) => requireData<ApiResponse<Pack[]>>(res))
+  },
+  createPack(data: CreatePackRequest): Promise<ApiResponse<Pack>> {
+    return client
+      .POST('/packs', { body: data as unknown as { name: string; image_url?: string } })
+      .then((res) => requireData<ApiResponse<Pack>>(res))
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Cards
+// ---------------------------------------------------------------------------
+
+export const kardsAPI = {
+  getKards(limit: number, offset: number): Promise<ApiResponse<Kard[]>> {
+    return client
+      .GET('/cards', { params: { query: { limit, offset } } })
+      .then((res) => requireData<ApiResponse<Kard[]>>(res))
+  },
+  getKard(id: number): Promise<ApiResponse<Kard>> {
+    return client
+      .GET('/cards/{id}', { params: { path: { id } } })
+      .then((res) => requireData<ApiResponse<Kard>>(res))
+  },
+  searchKards(game_id: number, language_id: number, pack_id: number, query: string, limit: number, offset: number): Promise<ApiResponse<Kard[]>> {
+    return client
+      .GET('/cards/search', { params: { query: { game_id, language_id, pack_id, query, limit, offset } } })
+      .then((res) => requireData<ApiResponse<Kard[]>>(res))
+  },
+  createKard(data: CreateKardRequest): Promise<ApiResponse<Kard>> {
+    return client
+      .POST('/cards', { body: data as unknown as Record<string, unknown> })
+      .then((res) => requireData<ApiResponse<Kard>>(res))
+  },
+  updateKard(id: number, data: CreateKardRequest): Promise<ApiResponse<Kard>> {
+    return client
+      .POST('/cards/{id}', { params: { path: { id } }, body: data as unknown as Record<string, unknown> })
+      .then((res) => requireData<ApiResponse<Kard>>(res))
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Protected cards (authorized callers only)
+// ---------------------------------------------------------------------------
+
+export const protectedKardsAPI = {
+  getKards(limit: number, offset: number): Promise<ApiResponse<ProtectedKard[]>> {
+    return client
+      .GET('/cards/protected', { params: { query: { limit, offset } } })
+      .then((res) => requireData<ApiResponse<ProtectedKard[]>>(res))
+  },
+  getKard(id: number): Promise<ApiResponse<ProtectedKard>> {
+    return client
+      .GET('/cards/protected/{id}', { params: { path: { id } } })
+      .then((res) => requireData<ApiResponse<ProtectedKard>>(res))
+  },
+  updateKard(id: number, data: CreateKardRequest): Promise<ApiResponse<ProtectedKard>> {
+    return client
+      .POST('/cards/protected/{id}', { params: { path: { id } }, body: data as unknown as Record<string, unknown> })
+      .then((res) => requireData<ApiResponse<ProtectedKard>>(res))
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Storages
+// ---------------------------------------------------------------------------
+
+export const storagesAPI = {
+  getStorages(limit: number, offset: number): Promise<ApiResponse<Storage[]>> {
+    return client
+      .GET('/storages', { params: { query: { limit, offset } } })
+      .then((res) => requireData<ApiResponse<Storage[]>>(res))
+  },
+  getStorage(id: number): Promise<ApiResponse<Storage>> {
+    return client
+      .GET('/storages/{id}', { params: { path: { id } } })
+      .then((res) => requireData<ApiResponse<Storage>>(res))
+  },
+  searchStorages(query: string, limit: number, offset: number): Promise<ApiResponse<Storage[]>> {
+    return client
+      .GET('/storages/search', { params: { query: { query, limit, offset } } })
+      .then((res) => requireData<ApiResponse<Storage[]>>(res))
+  },
+  createStorage(data: components['schemas']['CreateStorageRequest']): Promise<ApiResponse<Storage>> {
+    return client
+      .POST('/storages', { body: data as unknown as { name: string } })
+      .then((res) => requireData<ApiResponse<Storage>>(res))
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Media (upload) — private
+// ---------------------------------------------------------------------------
+
+export const mediaAPI = {
+  uploadImage(file: File): Promise<MediaUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
-    return (
-      await publicApiClient.post('/media/scan', formData, { headers: { 'X-Cap-Token': capToken } })
-    ).data
+    return client
+      .POST('/media/upload', { body: formData as unknown as { file: string } })
+      .then((res) => requireData<MediaUploadResponse>(res))
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Media (scan) — public
+// ---------------------------------------------------------------------------
+
+export const mediaAPIScan = {
+  uploadImage(file: File): Promise<MediaUploadResponse> {
+    const formData = new FormData()
+    formData.append('file', file)
+    return client
+      .POST('/media/upload', { body: formData as unknown as { file: string } })
+      .then((res) => requireData<MediaUploadResponse>(res))
+  },
+  scanImage(file: File, capToken?: string): Promise<MediaScanResponse> {
+    const formData = new FormData()
+    formData.append('file', file)
+    return client
+      .POST('/media/scan', {
+        body: formData as unknown as { file: string },
+        headers: capToken ? { 'X-Cap-Token': capToken } : {},
+      })
+      .then((res) => requireData<MediaScanResponse>(res))
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+export const authAPI = {
+  login(payload: LoginRequest): Promise<ApiResponse<LoginResponse>> {
+    return client
+      .POST('/auth/login', { body: payload as unknown as { email: string; password: string } })
+      .then((res) => requireData<ApiResponse<LoginResponse>>(res))
+  },
+  refresh(payload: { refresh_token: string }): Promise<ApiResponse<RefreshResponse>> {
+    return client
+      .POST('/auth/refresh', { body: payload as unknown as { refresh_token: string } })
+      .then((res) => requireData<ApiResponse<RefreshResponse>>(res))
+  },
+  logout(): Promise<void> {
+    return client
+      .POST('/auth/logout', { body: {} as Record<string, never> })
+      .then(() => undefined)
   },
 }

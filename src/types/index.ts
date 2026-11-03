@@ -168,8 +168,8 @@ export interface Storage {
 export interface ApiResponse<T> {
   data: T
   meta: {
-    limit: number
-    offset: number
+    page: number
+    pageSize: number
     total: number
   }
 }
@@ -202,4 +202,8 @@ export interface RefreshRequest {
 export interface RefreshResponse {
   access_token: string
   refresh_token: string | null
+}
+
+export interface StorageRequest {
+  name: string
 }
