@@ -5,7 +5,11 @@ import { mediaAPIScan } from '../services/api'
 import type { CardMatch } from '../types'
 import { CAPTCHA_REQUIRED } from '../config/app'
 
-const CAP_API_ENDPOINT = 'https://cap.tama.id/b486d0c417/'
+// Self-hosted captcha widget endpoint. Override in production with
+// VITE_CAP_API_ENDPOINT in a .env file. Defaults to a placeholder so the repo
+// carries no private infrastructure details.
+const DEFAULT_CAP_API_ENDPOINT = 'https://example.com/captcha/'
+const CAP_API_ENDPOINT = import.meta.env.VITE_CAP_API_ENDPOINT || DEFAULT_CAP_API_ENDPOINT
 
 export const ScannerPage = () => {
   const [file, setFile] = useState<File | null>(null)

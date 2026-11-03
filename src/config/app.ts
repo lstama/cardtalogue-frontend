@@ -5,7 +5,7 @@
 //   - Backend CAPTCHA_MODE=off -> set this false (backend accepts any token; skip the gate)
 //
 // Set to false for local dev testing when the backend runs with CAPTCHA_MODE=off.
-// The scanner's Cap widget talks to a self-hosted instance (cap.tama.id) that is
+// The scanner's Cap widget talks to a self-hosted captcha instance that may be
 // unreachable in some dev environments, so the gate must be skippable.
 export const CAPTCHA_ENABLED = false;
 
