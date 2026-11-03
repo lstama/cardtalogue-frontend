@@ -202,7 +202,7 @@ export const packsAPI = {
   },
   createPack(data: CreatePackRequest): Promise<ApiResponse<Pack>> {
     return client
-      .POST('/packs', { body: data as unknown as { name: string; image_url?: string } })
+      .POST('/packs', { body: data as components['schemas']['CreatePackRequest'] })
       .then((res) => requireData<ApiResponse<Pack>>(res))
   },
 }
@@ -229,12 +229,12 @@ export const kardsAPI = {
   },
   createKard(data: CreateKardRequest): Promise<ApiResponse<Kard>> {
     return client
-      .POST('/cards', { body: data as unknown as Record<string, unknown> })
+      .POST('/cards', { body: data as components['schemas']['CreateCardRequest'] })
       .then((res) => requireData<ApiResponse<Kard>>(res))
   },
   updateKard(id: number, data: CreateKardRequest): Promise<ApiResponse<Kard>> {
     return client
-      .POST('/cards/{id}', { params: { path: { id } }, body: data as unknown as Record<string, unknown> })
+      .PUT('/cards/{id}', { params: { path: { id } }, body: data as components['schemas']['CreateCardRequest'] })
       .then((res) => requireData<ApiResponse<Kard>>(res))
   },
 }
@@ -256,7 +256,7 @@ export const protectedKardsAPI = {
   },
   updateKard(id: number, data: CreateKardRequest): Promise<ApiResponse<ProtectedKard>> {
     return client
-      .POST('/cards/protected/{id}', { params: { path: { id } }, body: data as unknown as Record<string, unknown> })
+      .PUT('/cards/protected/{id}', { params: { path: { id } }, body: data as components['schemas']['CreateCardRequest'] })
       .then((res) => requireData<ApiResponse<ProtectedKard>>(res))
   },
 }
@@ -283,7 +283,7 @@ export const storagesAPI = {
   },
   createStorage(data: components['schemas']['CreateStorageRequest']): Promise<ApiResponse<Storage>> {
     return client
-      .POST('/storages', { body: data as unknown as { name: string } })
+      .POST('/storages', { body: data })
       .then((res) => requireData<ApiResponse<Storage>>(res))
   },
 }
@@ -343,7 +343,7 @@ export const authAPI = {
   },
   logout(): Promise<void> {
     return client
-      .POST('/auth/logout', { body: {} as Record<string, never> })
+      .POST('/auth/logout', { body: undefined })
       .then(() => undefined)
   },
 }
