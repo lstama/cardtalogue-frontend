@@ -102,6 +102,30 @@ const TCGCameraModal: React.FC<{ onProcessed: (f: File, p: string) => void; onCl
     }
   };
 
+  const handleFile = async (file: File | undefined) => {
+    try {
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Unable to load the selected image.'));
+        image.src = url;
+      });
+      const preview = await processImage(url, {
+        x: 0,
+        y: 0,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+      URL.revokeObjectURL(url);
+      onProcessed(preview.file, preview.preview);
+    } catch (err) {
+      console.error('handleFile error:', err);
+      setWarning('Unable to process this image. Try again.');
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
       <div className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-white/10" style={{ aspectRatio: '2.4/3.4' }}>
@@ -132,6 +156,19 @@ const TCGCameraModal: React.FC<{ onProcessed: (f: File, p: string) => void; onCl
         <button onClick={onClose} className="text-white/50 text-xs font-bold">CANCEL</button>
         <button onClick={handleCapture} className="w-16 h-16 bg-white rounded-full border-4 border-white/20 active:scale-90 shadow-lg" />
         <div className="w-10" />
+      </div>
+
+      <div className="mt-4 flex items-center justify-center gap-3 text-white/60 text-xs">
+        <span>Or upload a photo</span>
+        <label className="cursor-pointer rounded-md bg-white/10 px-3 py-1.5 text-white/80 hover:bg-white/20 transition">
+          Choose file
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFile(e.target.files?.[0])}
+          />
+        </label>
       </div>
     </div>
   );
