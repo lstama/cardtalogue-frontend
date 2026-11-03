@@ -57,6 +57,9 @@ npm install
 #   By default the app talks to a local backend on :8080. For production, add a
 #   `.env` file with:
 #     VITE_API_BASE_URL=https://api.your-production-domain.com/api/v1
+#   The scanner page also needs the captcha widget endpoint (defaults to a
+#   placeholder, so the scan flow won't work in production without this):
+#     VITE_CAP_API_ENDPOINT=https://captcha.your-production-domain.com/<site-key>
 
 # 4. Run the dev server.
 npm run dev
@@ -71,6 +74,7 @@ Vite exposes variables prefixed with `VITE_`.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | Base URL of the backend API. Set this in production. |
+| `VITE_CAP_API_ENDPOINT` | `https://example.com/captcha/` | Self-hosted captcha widget endpoint used by the scanner page. Override in production. |
 
 ## Scripts
 
