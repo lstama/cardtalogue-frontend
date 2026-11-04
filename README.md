@@ -1,8 +1,8 @@
 # Cardtalogue Frontend
 
 React + TypeScript + Vite single-page app for the Cardtalogue card-management platform. This is
-the client that talks to the [backend API](../cardtalogue-backend) and drives the ORB card-scanning
-flow.
+the client that talks to the [backend API](https://github.com/lstama/cardtalogue-backend) and
+drives the ORB card-scanning flow.
 
 ## Stack
 
@@ -16,10 +16,10 @@ flow.
 ## Architecture
 
 The frontend is **contract-driven**. It imports its API types from the generated TypeScript client
-in the shared contract repo:
+in the shared contract repo ([`lstama/cardtalogue-api-contract`](https://github.com/lstama/cardtalogue-api-contract)):
 
 ```
-cardtalogue-api-contract/gen/ts/*   ->   import ... from '@contract/*'
+gen/ts/*   ->   import ... from '@contract/*'
 ```
 
 The `@contract/*` path alias is defined in [`tsconfig.json`](tsconfig.json). Before building, the
@@ -40,15 +40,15 @@ contract types must be generated (see [Contract types](#contract-types)).
 ## Prerequisites
 
 - Node.js 20+
-- The backend running (see [cardtalogue-backend](../cardtalogue-backend))
+- The backend running (see the [backend repo](https://github.com/lstama/cardtalogue-backend))
 - The contract types generated (see below)
 
 ## Setup
 
 ```bash
 # 1. Generate the shared contract's TypeScript client (from the contract repo).
-#    See cardtalogue-api-contract/README.md -> "Generate"
-#    This populates ../cardtalogue-api-contract/gen/ts/
+#    See [cardtalogue-api-contract/README.md](https://github.com/lstama/cardtalogue-api-contract/blob/master/README.md) -> "Generate"
+#    This populates the contract repo's gen/ts/ directory
 
 # 2. Install dependencies.
 npm install
@@ -66,6 +66,32 @@ npm run dev
 ```
 
 The app opens at <http://localhost:3000>.
+
+## How to run
+
+```bash
+# 1. Generate the shared contract's TypeScript client (populates ../cardtalogue-api-contract/gen/ts/).
+cd ../cardtalogue-api-contract && make generate-ts && cd ../cardtalogue-frontend
+# 2. Install and run.
+npm install
+npm run dev                    # dev server at http://localhost:3000
+```
+
+The app talks to the backend on `http://localhost:8080/api/v1` by default. Override with
+`VITE_API_BASE_URL` (and `VITE_CAP_API_ENDPOINT` for the scanner captcha) in a `.env` file.
+See [Setup](#setup) for the full environment setup.
+
+## How to contribute
+
+This repo is **contract-driven** — the API types come from the shared contract repo
+([`lstama/cardtalogue-api-contract`](https://github.com/lstama/cardtalogue-api-contract)).
+
+- **UI-only change** → `npm run dev`, then `npm run verify-contract` (type-checks against the
+  contract) and `npm run lint` before pushing.
+- **New/changed API endpoint** → the endpoint must first exist in the contract. Coordinate with the
+  backend engineer to edit `contracts/backend.yaml` in the contract repo, bump `CONTRACT_VERSION`,
+  and run `make generate`. Then regenerate here (`make generate-ts`), re-run `verify-contract`, and
+  open a PR.
 
 ## Environment variables
 
