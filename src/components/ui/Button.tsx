@@ -1,8 +1,10 @@
 import { forwardRef, ButtonHTMLAttributes } from 'react'
+import type { ReactNode } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline'
   size?: 'sm' | 'md' | 'lg'
+  children?: ReactNode
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

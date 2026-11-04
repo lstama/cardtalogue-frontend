@@ -1,5 +1,6 @@
 // components/layout/SearchLayout.tsx
-import { ReactNode, useState, useEffect } from "react"
+import { useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { SearchBar } from "../ui/SearchBar"
 import { LoadingSpinner } from "../ui/LoadingSpinner"
 import { ErrorMessage } from "../ui/ErrorMessage"

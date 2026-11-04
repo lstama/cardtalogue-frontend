@@ -1,11 +1,12 @@
 import { useQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query'
+import { STALE_TIME_MS } from '../config/query'
 import { packsAPI } from '../services/api'
 
 export const usePacks = (limit: number = 20, offset: number = 0) => {
   return useQuery({
     queryKey: ['packs', limit, offset],
     queryFn: () => packsAPI.getPacks(limit, offset),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: STALE_TIME_MS,
   })
 }
 
@@ -19,7 +20,7 @@ export const useSearchPacks = (
   return useQuery({
     queryKey: ['packs/search', gameId, languageId, query, limit, offset],
     queryFn: () => packsAPI.searchPacks(gameId, languageId, query, limit, offset),
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME_MS,
     placeholderData: keepPreviousData,
     enabled: false,
   })

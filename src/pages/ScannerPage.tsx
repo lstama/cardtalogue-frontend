@@ -3,10 +3,15 @@ import { Link } from 'react-router-dom'
 import TCGCameraModal from '../components/ui/TCGCamera'
 import { mediaAPIScan } from '../services/api'
 import type { CardMatch } from '../types'
+import { CAPTCHA_REQUIRED } from '../config/app'
 
-const CAP_API_ENDPOINT = 'https://cap.tama.id/b486d0c417/'
+// Self-hosted captcha widget endpoint. Override in production with
+// VITE_CAP_API_ENDPOINT in a .env file. Defaults to a placeholder so the repo
+// carries no private infrastructure details.
+const DEFAULT_CAP_API_ENDPOINT = 'https://example.com/captcha/'
+const CAP_API_ENDPOINT = import.meta.env.VITE_CAP_API_ENDPOINT || DEFAULT_CAP_API_ENDPOINT
 
-export const ScannerPage: React.FC = () => {
+export const ScannerPage = () => {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [matches, setMatches] = useState<CardMatch[]>([])
@@ -52,7 +57,7 @@ export const ScannerPage: React.FC = () => {
   }
 
   const scanImage = async () => {
-    if (!file || !capToken) return
+    if (!file || (CAPTCHA_REQUIRED && !capToken)) return
 
     setLoading(true)
     setError(null)
@@ -60,7 +65,7 @@ export const ScannerPage: React.FC = () => {
     setCapToken(null)
 
     try {
-      const response = await mediaAPIScan.scanImage(file, capToken)
+      const response = await mediaAPIScan.scanImage(file, capToken ?? '')
       if (!response.data.success) {
         throw new Error('The scan could not identify any cards.')
       }
@@ -116,12 +121,12 @@ export const ScannerPage: React.FC = () => {
             <button
               type="button"
               onClick={scanImage}
-              disabled={!file || !capToken || loading}
+              disabled={!file || (CAPTCHA_REQUIRED && !capToken) || loading}
               className="mt-4 w-full rounded-md bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               {loading ? 'Scanning…' : 'Scan image'}
             </button>
-            {!capToken && <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Complete the verification before scanning.</p>}
+            {!CAPTCHA_REQUIRED ? null : !capToken && <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Complete the verification before scanning.</p>}
           </div>
         </div>
 

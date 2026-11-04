@@ -1,4 +1,5 @@
-import { useEffect, useRef, RefObject } from "react";
+import { useEffect, useRef } from 'react'
+import type { RefObject } from 'react'
 
 export function useClickOutside<T extends HTMLDivElement>(
   onOutsideClick: () => void
@@ -16,5 +17,5 @@ export function useClickOutside<T extends HTMLDivElement>(
     return () => document.removeEventListener("mousedown", handleClick);
   }, [onOutsideClick]);
 
-  return ref;
+  return ref as RefObject<T>;
 }

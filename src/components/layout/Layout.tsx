@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 // import { DarkModeToggle } from '../ui/DarkModeToggle'
 import Navbar from './Navbar'
 interface LayoutProps {

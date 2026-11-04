@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { createContext, useContext, useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
 
 export interface CartItem {
   id: number
@@ -31,31 +32,18 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 const STORAGE_KEY = "offline_cart"
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    try {
-      const stored = localStorage.getItem("cart")
-      return stored ? JSON.parse(stored) : []
-    } catch {
-      return []
-    }
-  })
-
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart))
-  }, [cart])
-
-  // Load from localStorage on mount
-  useEffect(() => {
+const readCart = (): CartItem[] => {
+  try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        setCart(JSON.parse(stored))
-      } catch {
-        setCart([])
-      }
-    }
-  }, [])
+    const parsed = stored ? JSON.parse(stored) : []
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [cart, setCart] = useState<CartItem[]>(readCart)
 
   // Persist to localStorage on change
   useEffect(() => {
