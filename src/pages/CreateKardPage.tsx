@@ -146,6 +146,7 @@ export const CreateKardPage = () => {
         <div className="space-y-1">
           <h5 className="text-sm dark:text-gray-100 font-semibold">Code</h5>
           <input
+            data-testid="card-code"
             className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 uppercase"
             placeholder="Code"
             value={form.code}
@@ -154,6 +155,7 @@ export const CreateKardPage = () => {
 
           <h5 className="text-sm dark:text-gray-100 font-semibold">Name</h5>
           <input
+            data-testid="card-name"
             className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
             placeholder="Name"
             value={form.name}
@@ -164,6 +166,7 @@ export const CreateKardPage = () => {
             Price (Yen, for now x100)
           </h5>
           <input
+            data-testid="card-price"
             type="number"
             className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
             value={form.price}
@@ -172,6 +175,7 @@ export const CreateKardPage = () => {
 
           <h5 className="text-sm dark:text-gray-100 font-semibold">Quantity</h5>
           <ChoiceButtons
+            testId="card-quantity"
             values={[0, 1, 2, 3, 4, 5]}
             selected={form.quantity}
             onChange={(qty) => handleChange('quantity', qty)}
@@ -181,6 +185,7 @@ export const CreateKardPage = () => {
 
           <h5 className="text-sm dark:text-gray-100 font-semibold">For Sale?</h5>
           <ChoiceButtons
+            testId="card-for-sale"
             values={['yes', 'no']}
             selected={form.for_sale}
             onChange={(val) => handleChange('for_sale', val)}
@@ -189,6 +194,7 @@ export const CreateKardPage = () => {
 
           <h5 className="text-sm dark:text-gray-100 font-semibold">Show card to public?</h5>
           <ChoiceButtons
+            testId="card-status"
             values={['enabled', 'disabled']}
             selected={form.status}
             onChange={(val) => handleChange('status', val)}
@@ -199,6 +205,7 @@ export const CreateKardPage = () => {
           <h5 className="text-sm dark:text-gray-100 font-semibold">Image URL</h5>
           <div className="flex gap-2">
             <input
+              data-testid="card-image-url"
               className="flex-1 border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
               placeholder="Image URL"
               value={form.image_url}
@@ -215,6 +222,7 @@ export const CreateKardPage = () => {
 
           <h5 className="text-sm dark:text-gray-100 font-semibold">Description</h5>
           <textarea
+            data-testid="card-description"
             className="w-full border p-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
             placeholder="Description"
             rows={4}
@@ -224,6 +232,7 @@ export const CreateKardPage = () => {
 
           <h5 className="text-sm dark:text-gray-100 font-semibold">Rarity</h5>
           <ChoiceButtons
+            testId="card-rarity"
             values={rarities.filter((r) => RARITY_CODES.includes(r.code)).map((r) => r.id)}
             selected={form.rarity_id}
             onChange={(id) => handleChange('rarity_id', id)}
@@ -262,6 +271,7 @@ export const CreateKardPage = () => {
           </div>
 
           <button
+            data-testid="card-submit"
             className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-500 flex justify-center items-center mt-8 font-bold shadow-lg transition-all"
             onClick={handleSubmit}
             disabled={createKard.isPending || updateKard.isPending}

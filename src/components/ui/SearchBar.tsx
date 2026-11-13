@@ -96,6 +96,7 @@ export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBar
         {/* Search input */}
         <div className="relative w-full">
           <input
+            data-testid="search-input"
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -110,6 +111,7 @@ export const SearchBar = ({ filters = [], query, setQuery, onSearch }: SearchBar
             placeholder="Search..."
           />
           <button
+            data-testid="search-submit"
             type="submit"
             className="absolute top-0 right-0 p-2.5 text-sm font-medium h-full text-white 
               bg-blue-700 rounded-e-lg border border-blue-700 hover:bg-blue-800 

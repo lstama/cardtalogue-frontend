@@ -32,10 +32,11 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100">Login</h1>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>
+          <div data-testid="login-error" className="bg-red-100 text-red-700 p-2 rounded">{error}</div>
         )}
 
         <input
+          data-testid="login-email"
           type="email"
           placeholder="Email"
           value={email}
@@ -47,6 +48,7 @@ export default function LoginPage() {
         />
 
         <input
+          data-testid="login-password"
           type="password"
           placeholder="Password"
           value={password}
@@ -58,6 +60,7 @@ export default function LoginPage() {
         />
 
         <button
+          data-testid="login-submit"
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >

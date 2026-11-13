@@ -26,6 +26,7 @@ export const ChoiceButtons = ({
   itemClass = 'flex-1 py-2 rounded-lg font-bold border transition-all',
   containerClass = 'flex gap-2',
   labelFor,
+  testId,
 }: {
   values: any[]
   selected: any
@@ -34,8 +35,9 @@ export const ChoiceButtons = ({
   itemClass?: string
   containerClass?: string
   labelFor?: (value: any) => string
+  testId?: string
 }) => (
-  <div className={containerClass}>
+  <div data-testid={testId} className={containerClass}>
     {values.map((value) => (
       <button
         key={String(value)}
