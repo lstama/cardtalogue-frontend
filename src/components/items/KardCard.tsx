@@ -23,7 +23,7 @@ export const KardCard = ({ kard }: KardCardProps) => {
   }, [kard.quantity])
 
   return (
-    <div className="relative perspective">
+    <div data-testid="card-item" data-card-code={kard.code} className="relative perspective">
       <div
         className={`relative w-full h-full transition-transform duration-500 transform-style-preserve-3d ${flipped ? "rotate-y-180" : ""
           }`}
@@ -77,6 +77,7 @@ export const KardCard = ({ kard }: KardCardProps) => {
             {/* Details Button (Flip) */}
             <div className="mt-auto min-h-[36px] flex items-end">
               <button
+                data-testid="card-details"
                 onClick={() => setFlipped(true)}
                 className="w-full text-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
               >
@@ -146,6 +147,7 @@ export const KardCard = ({ kard }: KardCardProps) => {
 
               {isAuthenticated && (
               <button
+                data-testid="card-edit"
                 onClick={() => navigate(`/create/card/${kard.id}`)}
                 className="w-full text-xs px-2 py-1 bg-purple-600 text-white rounded 
                      hover:bg-purple-700"
@@ -155,6 +157,7 @@ export const KardCard = ({ kard }: KardCardProps) => {
               )}
 
               <button
+                data-testid="card-back"
                 onClick={() => setFlipped(false)}
                 className="w-full px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700"
               >

@@ -91,7 +91,7 @@ export function SearchLayout<T>({
         <ErrorMessage error={error as Error} retry={handleSearch} />
       ) : data?.data?.length ? (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div data-testid="search-results" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {data.data.map(renderItem)}
           </div>
 
@@ -106,7 +106,7 @@ export function SearchLayout<T>({
           />
         </>
       ) : (
-        <div className="text-center py-12">
+        <div data-testid="search-empty" className="text-center py-12">
           <p className="text-gray-500 text-lg">{noResultsText}</p>
         </div>
       )}

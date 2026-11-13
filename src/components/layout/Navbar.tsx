@@ -63,9 +63,10 @@ export default function Navbar() {
 
         <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           {isAuthenticated ? (
-            <button onClick={() => setShowLogoutConfirm(true)} className={SIGN_IN_BUTTON}>Logout</button>
+            <button data-testid="nav-logout" onClick={() => setShowLogoutConfirm(true)} className={SIGN_IN_BUTTON}>Logout</button>
           ) : (
             <NavLink
+              data-testid="nav-login"
               to="/login"
               onClick={closeAllDropdown}
               className={({ isActive }) => (isActive ? 'hidden' : SIGN_IN_BUTTON)}
@@ -117,6 +118,7 @@ export default function Navbar() {
             {isAuthenticated && (
               <li className="relative">
                 <button
+                  data-testid="nav-add"
                   onClick={() => setCreateOpen(!createOpen)}
                   data-dropdown-toggle="dropdownNavbar"
                   className={NAV_IDLE}
@@ -129,6 +131,7 @@ export default function Navbar() {
                 >
                   <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownLargeButton">
                     <NavLink
+                      data-testid="nav-add-card"
                       to="/create/card"
                       onClick={closeAllDropdown}
                       className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"

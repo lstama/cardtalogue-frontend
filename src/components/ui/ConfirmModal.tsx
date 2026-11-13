@@ -27,12 +27,14 @@ export const ConfirmModal = ({
       </pre>
       <div className="flex justify-end space-x-2">
         <button
+          data-testid="confirm-cancel"
           className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-400"
           onClick={onCancel}
         >
           Cancel
         </button>
         <button
+          data-testid="confirm-save"
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex justify-center items-center font-bold"
           onClick={onConfirm}
           disabled={confirmDisabled}
