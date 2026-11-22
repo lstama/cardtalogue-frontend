@@ -95,12 +95,15 @@ This repo is **contract-driven** — the API types come from the shared contract
 
 ## Environment variables
 
-Vite exposes variables prefixed with `VITE_`.
+Vite exposes variables prefixed with `VITE_`. These are **build-time** variables: they are baked
+into the bundle at build time, not read at runtime. In production they are passed as Docker build
+args (e.g. `docker buildx build --build-arg VITE_CAPTCHA_ENABLED=true ...`).
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | Base URL of the backend API. Set this in production. |
 | `VITE_CAP_API_ENDPOINT` | `https://example.com/captcha/` | Self-hosted captcha widget endpoint used by the scanner page. Override in production. |
+| `VITE_CAPTCHA_ENABLED` | `false` | Set to `true` to require the Cap proof-of-work widget before scanning. Must match the backend's `CAPTCHA_MODE`. |
 
 ## Scripts
 
