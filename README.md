@@ -29,11 +29,14 @@ contract types must be generated (see [Contract types](#contract-types)).
 
 - `src/config/api.ts` — API base URL. Defaults to `http://localhost:8080/api/v1`; override with
   `VITE_API_BASE_URL` in a `.env` file for production.
-- `src/config/app.ts` — app-wide feature flags (e.g. the scan captcha gate).
-- `src/services/api.ts` — openapi-fetch client with JWT auth, proactive token refresh, and a
-  single 401-retry.
+- `src/config/app.ts` — app-wide feature flags and the captcha widget endpoint (the CAPTCHA gate
+  applies to scanning and login).
+- `src/services/api.ts` — openapi-fetch client with JWT auth. Authenticated calls get a proactive
+  refresh (when the access token is within 5 min of expiry) and one retry on a 401; the public
+  `POST /auth/login` bypasses that loader entirely (no stored bearer, no refresh, no retry).
 - `src/contexts/*` — auth, cart, and theme contexts.
-- `src/hooks/*` — TanStack Query hooks per resource (kards, packs, games, storages).
+- `src/hooks/*` — TanStack Query hooks per resource (kards, packs, games, storages), plus
+  `useCapWidget` (the `<cap-widget>` lifecycle hook behind the login and scanner CAPTCHA gates).
 - `src/pages/*` — login, card/pack/game/storage lists, create/update forms, cart, scanner.
 - `src/components/*` — layout, UI primitives, and the scan panel / camera.
 
@@ -57,9 +60,11 @@ npm install
 #   By default the app talks to a local backend on :8080. For production, add a
 #   `.env` file with:
 #     VITE_API_BASE_URL=https://api.your-production-domain.com/api/v1
-#   The scanner page also needs the captcha widget endpoint (defaults to a
-#   placeholder, so the scan flow won't work in production without this):
+#   The scanner and login pages also need the captcha widget endpoint (defaults
+#   to a placeholder, so the captcha gate won't work in production without this):
 #     VITE_CAP_API_ENDPOINT=https://captcha.your-production-domain.com/<site-key>
+#   and, when the backend runs with CAPTCHA_MODE=on, turn the gate on as well:
+#     VITE_CAPTCHA_ENABLED=true
 
 # 4. Run the dev server.
 npm run dev
@@ -78,7 +83,7 @@ npm run dev                    # dev server at http://localhost:3000
 ```
 
 The app talks to the backend on `http://localhost:8080/api/v1` by default. Override with
-`VITE_API_BASE_URL` (and `VITE_CAP_API_ENDPOINT` for the scanner captcha) in a `.env` file.
+`VITE_API_BASE_URL` (and `VITE_CAP_API_ENDPOINT` for the captcha widget) in a `.env` file.
 See [Setup](#setup) for the full environment setup.
 
 ## How to contribute
@@ -119,8 +124,8 @@ args (e.g. `docker buildx build --build-arg VITE_CAPTCHA_ENABLED=true ...`).
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | Base URL of the backend API. Set this in production. |
-| `VITE_CAP_API_ENDPOINT` | `https://example.com/captcha/` | Self-hosted captcha widget endpoint used by the scanner page. Override in production. |
-| `VITE_CAPTCHA_ENABLED` | `false` | Set to `true` to require the Cap proof-of-work widget before scanning. Must match the backend's `CAPTCHA_MODE`. |
+| `VITE_CAP_API_ENDPOINT` | `https://example.com/captcha/` | Self-hosted captcha widget endpoint used by the scanner page and the login page. Override in production. |
+| `VITE_CAPTCHA_ENABLED` | `false` | Set to `true` to require the Cap proof-of-work widget before **scanning and logging in** (the login request then carries `X-Cap-Token`). Must match the backend's `CAPTCHA_MODE`: `true` ⇔ `CAPTCHA_MODE=on`. |
 
 ## Scripts
 
@@ -135,13 +140,16 @@ node scripts/check-contract-calls.mjs   # every call is covered by the pinned co
 
 ## Features
 
-- Email/password login with JWT access + refresh tokens (auto-refresh + single 401 retry).
+- Email/password login issuing JWT access + refresh tokens. Later authenticated calls refresh the
+  access token proactively and retry once on a 401; the login request itself never refreshes,
+  retries, or carries a stored bearer. When `VITE_CAPTCHA_ENABLED=true` the login form also requires
+  the Cap proof-of-work widget and sends its token as `X-Cap-Token`.
 - Browse and search games, languages, rarities, packs, and cards.
 - Create / update packs and cards (editor role); delete is admin-only.
 - Manage storages and stock.
 - Shopping cart.
 - Camera-based ORB card scan (`/scanner`) that posts to the scanner service via the backend's
-  `/media/scan` endpoint (with an optional captcha gate).
+  `/media/scan` endpoint (with an optional captcha gate, shared with login).
 
 ## License
 

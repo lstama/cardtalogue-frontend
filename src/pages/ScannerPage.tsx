@@ -1,15 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TCGCameraModal from '../components/ui/TCGCamera'
+import { CaptchaWidget } from '../components/ui/CaptchaWidget'
 import { mediaAPIScan } from '../services/api'
 import type { CardMatch } from '../types'
+import type { CaptchaWidgetHandle } from '../components/ui/CaptchaWidget'
 import { CAPTCHA_REQUIRED } from '../config/app'
-
-// Self-hosted captcha widget endpoint. Override in production with
-// VITE_CAP_API_ENDPOINT in a .env file. Defaults to a placeholder so the repo
-// carries no private infrastructure details.
-const DEFAULT_CAP_API_ENDPOINT = 'https://example.com/captcha/'
-const CAP_API_ENDPOINT = import.meta.env.VITE_CAP_API_ENDPOINT || DEFAULT_CAP_API_ENDPOINT
 
 export const ScannerPage = () => {
   const [file, setFile] = useState<File | null>(null)
@@ -19,31 +15,8 @@ export const ScannerPage = () => {
   const [capToken, setCapToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
-  const [widgetRevision, setWidgetRevision] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  const capContainerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    let disposed = false
-    let widget: HTMLElement | null = null
-
-    customElements.whenDefined('cap-widget').then(() => {
-      if (disposed || !capContainerRef.current) return
-
-      widget = document.createElement('cap-widget')
-      widget.setAttribute('data-cap-api-endpoint', CAP_API_ENDPOINT)
-      widget.addEventListener('solve', (event) => {
-        const token = (event as CustomEvent<{ token?: string }>).detail?.token
-        if (token) setCapToken(token)
-      })
-      capContainerRef.current.replaceChildren(widget)
-    })
-
-    return () => {
-      disposed = true
-      widget?.remove()
-    }
-  }, [widgetRevision])
+  const captchaRef = useRef<CaptchaWidgetHandle>(null)
 
   const onProcessed = (capturedFile: File, croppedPreview: string) => {
     setFile(capturedFile)
@@ -51,21 +24,20 @@ export const ScannerPage = () => {
     setMatches([])
     setSelectedIndex(0)
     setError(null)
-    setCapToken(null)
     setIsCameraOpen(false)
-    setWidgetRevision((revision) => revision + 1)
+    captchaRef.current?.reset()
   }
 
   const scanImage = async () => {
-    if (!file || (CAPTCHA_REQUIRED && !capToken)) return
+    const token = capToken
+    if (!file || (CAPTCHA_REQUIRED && !token)) return
 
     setLoading(true)
     setError(null)
     setMatches([])
-    setCapToken(null)
 
     try {
-      const response = await mediaAPIScan.scanImage(file, capToken ?? '')
+      const response = await mediaAPIScan.scanImage(file, token ?? '')
       if (!response.data.success) {
         throw new Error('The scan could not identify any cards.')
       }
@@ -78,7 +50,8 @@ export const ScannerPage = () => {
       setError(scanError instanceof Error ? scanError.message : 'Unable to scan this image.')
     } finally {
       setLoading(false)
-      setWidgetRevision((revision) => revision + 1)
+      // The token is single-use: remount the widget so the next scan needs a fresh solve.
+      captchaRef.current?.reset()
     }
   }
 
@@ -117,7 +90,7 @@ export const ScannerPage = () => {
           </button>
 
           <div className="border-t border-gray-200 pt-5 dark:border-gray-700">
-            <div ref={capContainerRef} />
+            <CaptchaWidget ref={captchaRef} onChange={setCapToken} />
             <button
               type="button"
               onClick={scanImage}
