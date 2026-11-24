@@ -93,6 +93,23 @@ This repo is **contract-driven** — the API types come from the shared contract
   and run `make generate`. Then regenerate here (`make generate-ts`), re-run `verify-contract`, and
   open a PR.
 
+### Contract CI (owner of the calls)
+
+`.github/workflows/contract-check.yml` checks out the contract repo at `CONTRACT_REF`
+(default `v1.1.0`, override with the `CONTRACT_REF` repo variable/secret or the
+`workflow_dispatch` input), regenerates `gen/ts`, runs `npm run verify-contract`, then runs
+`scripts/check-contract-calls.mjs`. That script fails when any `client.GET|POST|PUT|DELETE|PATCH`
+or `fetch` path in `src/` is missing from the pinned contract (path **and** method), and fails if it
+discovers zero calls. This is the owner-side half of "no orphan calls" — the contract repo can no
+longer check it. Until the contract `v1.1.0` tag exists the job fails at the contract checkout; that
+is the intended release gate.
+
+Local run (against a sibling contract checkout):
+
+```bash
+node scripts/check-contract-calls.mjs --contract ../cardtalogue-api-contract
+```
+
 ## Environment variables
 
 Vite exposes variables prefixed with `VITE_`. These are **build-time** variables: they are baked
@@ -113,6 +130,7 @@ npm run build      # type-check (tsc -b) + production build
 npm run preview    # preview the production build
 npm run lint       # eslint
 npm run verify-contract   # tsc -b (type-checks against the contract types)
+node scripts/check-contract-calls.mjs   # every call is covered by the pinned contract
 ```
 
 ## Features
