@@ -86,6 +86,47 @@ The app talks to the backend on `http://localhost:8080/api/v1` by default. Overr
 `VITE_API_BASE_URL` (and `VITE_CAP_API_ENDPOINT` for the captcha widget) in a `.env` file.
 See [Setup](#setup) for the full environment setup.
 
+## Docker image build
+
+The image build **generates** the contract TypeScript itself — `gen/ts/backend.ts` is never
+committed (it is gitignored in the contract repo), so a clean checkout plus the contract repo is
+enough. The contract repo is passed as a BuildKit **named build context** called `contract-src`,
+and a `contract-types` stage runs the pinned `openapi-typescript` (7.13.0, matching the contract
+repo's devDependency) on `contracts/backend.yaml`, copying the result to
+`/cardtalogue-api-contract/gen/ts/` inside the build stage so the existing `@contract/*` aliases
+resolve unchanged. No alias patch and no temporary vendored `contract-ts/` directory is needed.
+
+```bash
+# From the frontend repo, with cardtalogue-api-contract checked out alongside it.
+docker buildx build \
+  --builder multiarch-builder \
+  --platform linux/arm64 \
+  --build-context contract-src=../cardtalogue-api-contract \
+  --load \
+  -t registry.tama.id:30500/cardtalogue-frontend:arm64-$(date +%Y%m%d) \
+  .
+```
+
+With `make` (same command, `CONTRACT_SRC` overrides the sibling path):
+
+```bash
+make build                       # --load, TAG=arm64 by default
+make push TAG=arm64-$(date +%Y%m%d)
+```
+
+Requirements and notes:
+
+- `--build-context` needs BuildKit (buildx / Docker ≥ 20.10 with BuildKit). Without it the build
+  fails because the `contract-src` context cannot be resolved — BuildKit reports it as
+  `pull access denied ... library/contract-src:latest`, which means "you forgot
+  `--build-context contract-src=...`". The `make` targets check for
+  `$(CONTRACT_SRC)/contracts/backend.yaml` first and print a clear error. The path is configurable
+  via `CONTRACT_SRC` (Makefile) or the `--build-context` flag directly.
+- The contract repo still needs network access to install the pinned `openapi-typescript` in the
+  build stage; no SSH keys or private registry credentials are required.
+- Build args (`VITE_API_BASE_URL`, `VITE_CAP_API_ENDPOINT`, `VITE_CAPTCHA_ENABLED`) are unchanged
+  and still baked in at build time (see [Environment variables](#environment-variables)).
+
 ## How to contribute
 
 This repo is **contract-driven** — the API types come from the shared contract repo

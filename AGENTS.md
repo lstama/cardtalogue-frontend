@@ -38,6 +38,27 @@ npm run verify-contract   # tsc -b: type-checks the whole project (contract type
 npm run build             # production build
 ```
 
+#### Docker image build
+
+The image build generates the contract TS itself; it does **not** require (or accept) a vendored
+`gen/ts` checkout, and generated types stay uncommitted. The contract repo is a BuildKit named
+build context:
+
+```bash
+docker buildx build --platform linux/arm64 \
+  --build-context contract-src=../cardtalogue-api-contract \
+  --load -t registry.tama.id:30500/cardtalogue-frontend:<new-tag> .
+
+make build TAG=<new-tag>    # same thing; CONTRACT_SRC=<path> overrides the sibling location
+```
+
+- A `contract-types` stage copies `contracts/backend.yaml` from `contract-src`, runs
+  `npx --yes openapi-typescript@7.13.0` (the contract repo's pinned devDependency), and the `build`
+  stage copies the result to `/cardtalogue-api-contract/gen/ts/` — the path the existing
+  `@contract/*` aliases already resolve. Do not patch aliases per build.
+- Omitting `--build-context` fails: the `contract-src` context is required (the `make` targets
+  pre-check for it and print a clear message).
+
 `verify-contract` runs `tsc -b`. It type-checks the contract-bound files
 (`src/services/api.ts`, `src/types/*`) against the generated TS types. If it
 passes, the frontend's calls are covered by the contract (no orphan calls).
