@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest, capToken?: string) => Promise<void>;
   logout: () => void;
   refreshToken: () => Promise<string | null>;
 }
@@ -65,12 +65,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return null;
   }, []);
 
-  // Login function
-  const login = useCallback(async (credentials: LoginRequest): Promise<void> => {
+  // Login function. `capToken` is the Cap proof-of-work token, forwarded in the
+  // X-Cap-Token header only when the backend enforces CAPTCHA_MODE=on.
+  const login = useCallback(async (credentials: LoginRequest, capToken?: string): Promise<void> => {
     setIsLoading(true);
     
     try {
-      const response: ApiResponse<LoginResponse> = await authAPI.login(credentials)
+      const response: ApiResponse<LoginResponse> = await authAPI.login(credentials, capToken)
       const login_response: LoginResponse = response.data
       const { user: userData, access_token, refresh_token } = login_response;
 
@@ -80,14 +81,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Set user
       setUser(userData)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Login failed:', error)
-      clearAuth();
-      throw new Error(error.response?.data?.error || 'Login failed');
+      // Preserve the original failure (an ApiError, or a fetch/network
+      // TypeError) so the page can tell bad credentials (401) from CAPTCHA
+      // (400 captcha*) from a network problem. Do NOT clear tokens or the user
+      // here: /login is public, and a failed attempt must not log out an
+      // existing session. Tokens are only stored on success.
+      throw error
     } finally {
       setIsLoading(false);
     }
-  }, [clearAuth]);
+  }, [])
 
   // Logout function
   const logout = useCallback(async () => {

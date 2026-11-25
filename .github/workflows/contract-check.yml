@@ -1,0 +1,72 @@
+name: contract
+
+# Owner-side contract check for the frontend.
+#
+# The contract repo no longer tries to enforce "no orphan calls" (it cannot see
+# the consumers). Each consumer checks its own calls against the contract
+# version it pins, on its own PRs. See the contract repo's README/CONTRIBUTING.
+#
+# Sequencing: this job checks out the contract at CONTRACT_REF (default
+# `v1.1.0`). Until that tag exists it fails at the checkout step — that is the
+# intended release gate, not a bug. For pre-tag testing set the value below.
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      contract_ref:
+        description: Contract git ref (tag/branch/SHA) to check against
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    env:
+      # Resolution order: workflow_dispatch input -> repo variable -> repo
+      # secret -> pinned default. `vars.CONTRACT_REF` is the normal override.
+      CONTRACT_REF: ${{ inputs.contract_ref || vars.CONTRACT_REF || secrets.CONTRACT_REF || 'v1.1.0' }}
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+
+      # Checked out as a *sibling* of the frontend checkout so the tsconfig path
+      # alias `../cardtalogue-api-contract/gen/ts/*` (and the Vite alias) resolve.
+      - name: Checkout contract (${{ env.CONTRACT_REF }})
+        uses: actions/checkout@v4
+        with:
+          repository: lstama/cardtalogue-api-contract
+          ref: ${{ env.CONTRACT_REF }}
+          path: cardtalogue-api-contract
+          # Public repo: GITHUB_TOKEN can read it. Set a CONTRACT_TOKEN secret
+          # only if the contract repo is private.
+          token: ${{ secrets.CONTRACT_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Generate contract TypeScript types
+        working-directory: cardtalogue-api-contract
+        run: |
+          npm ci
+          npx --no-install openapi-typescript contracts/backend.yaml -o gen/ts/backend.ts
+
+      - name: Type-check against the pinned contract
+        run: npm run verify-contract
+
+      - name: Every call is covered by the pinned contract
+        run: node scripts/check-contract-calls.mjs --contract ../cardtalogue-api-contract

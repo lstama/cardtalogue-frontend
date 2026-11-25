@@ -94,9 +94,27 @@ function refreshAccessToken(): Promise<string> {
 // openapi-fetch client with auth + 401-retry loader
 // ---------------------------------------------------------------------------
 
+// Login is a public endpoint. It must never inherit the stored session: sending
+// a stale bearer token, proactively refreshing, or retrying on 401 would re-send
+// a single-use CAPTCHA token and could clear a valid session from the /login page.
+function isLoginRequest(req: Request): boolean {
+  if (req.method?.toUpperCase() !== 'POST') return false
+  try {
+    return new URL(req.url).pathname.endsWith('/auth/login')
+  } catch {
+    return false
+  }
+}
+
 const client = createClient<paths>({
   baseUrl: API_BASE_URL,
   fetch: async (req: Request): Promise<Response> => {
+    // Public endpoints bypass the auth-header / proactive-refresh / 401-retry
+    // loader entirely.
+    if (isLoginRequest(req)) {
+      return fetch(req)
+    }
+
     // Add the auth header; proactively refresh if the token is about to expire.
     let token = localStorage.getItem('accessToken')
     if (token && isTokenExpiringSoon(token)) {
@@ -131,12 +149,53 @@ const client = createClient<paths>({
 // Response helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Error thrown by the API layer. It keeps the HTTP status and the parsed error
+ * body so callers can distinguish CAPTCHA (400), bad credentials (401), and
+ * other failures instead of collapsing everything into one message.
+ */
+export class ApiError extends Error {
+  readonly status: number
+  readonly body: unknown
+
+  constructor(status: number, message: string, body?: unknown) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.body = body
+  }
+}
+
+/** Pull `{ error: "..." }` (the contract's ErrorResponse) out of a parsed body. */
+function errorMessageFromBody(body: unknown): string | null {
+  if (typeof body === 'string') {
+    return body.trim() ? body : null
+  }
+  if (body && typeof body === 'object' && 'error' in body) {
+    const value = (body as { error?: unknown }).error
+    if (typeof value === 'string' && value.trim()) {
+      return value
+    }
+  }
+  return null
+}
+
 function requireData<T>(result: { data?: unknown; error?: unknown; response?: Response }): T {
   const { data, error, response } = result
   if (error || data === undefined) {
-    throw new Error(response?.statusText || 'Request failed')
+    const status = response?.status ?? 0
+    const message = errorMessageFromBody(error) ?? (response?.statusText || 'Request failed')
+    throw new ApiError(status, message, error)
   }
   return data as T
+}
+
+/**
+ * True when a failed call was rejected by the CAPTCHA gate. The backend answers
+ * with `{ error: "captcha required" | "captcha failed" | "captcha unavailable" }`.
+ */
+export function isCaptchaError(error: unknown): boolean {
+  return error instanceof ApiError && error.message.toLowerCase().includes('captcha')
 }
 
 // ---------------------------------------------------------------------------
@@ -320,7 +379,7 @@ export const mediaAPIScan = {
     return client
       .POST('/media/scan', {
         body: formData as unknown as { file: string },
-        headers: capToken ? { 'X-Cap-Token': capToken } : {},
+        params: capToken ? { header: { 'X-Cap-Token': capToken } } : undefined,
       })
       .then((res) => requireData<MediaScanResponse>(res))
   },
@@ -331,9 +390,13 @@ export const mediaAPIScan = {
 // ---------------------------------------------------------------------------
 
 export const authAPI = {
-  login(payload: LoginRequest): Promise<ApiResponse<LoginResponse>> {
+  login(payload: LoginRequest, capToken?: string): Promise<ApiResponse<LoginResponse>> {
     return client
-      .POST('/auth/login', { body: payload as unknown as { email: string; password: string } })
+      .POST('/auth/login', {
+        body: payload as unknown as { email: string; password: string },
+        // Required only when the backend runs with CAPTCHA_MODE=on.
+        params: capToken ? { header: { 'X-Cap-Token': capToken } } : undefined,
+      })
       .then((res) => requireData<ApiResponse<LoginResponse>>(res))
   },
   refresh(payload: { refresh_token: string }): Promise<ApiResponse<RefreshResponse>> {
